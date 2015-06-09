@@ -39,6 +39,25 @@ def get_forecast_data(location, units="standard"):
 	url = URL_FORECAST %(location, units)
 	return url
 
-class ForecastData:
+class OpenWeatherMapy(object):
 	def __init__(self, data):
 		self.data = data
+
+	def get(self, key):
+		return utils.get_item(self.data, key)
+
+	def get_many(self, keys):
+		items = utils.get_many(self.data, keys)
+		return items
+
+class ForecastData(OpenWeatherMapy):
+	def __call__(self, keys=None):
+		for line in self.data["list"]:
+			if keys:
+				line = utils.get_many(line, keys)
+			yield line
+
+	def fetch_all(self, keys=None):
+		data = [line for line in self(keys)]
+		return data
+

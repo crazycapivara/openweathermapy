@@ -2,8 +2,8 @@
 """
 	openweathermapy.utils
 	~~~~~~~~~~~~~~~~~~~~~
-	utility package containing functions to load settings from
-	`json-file(s)` and to get get items from `nested dictionaries` as
+	utility module containing functions to load settings from
+	`json-file(s)` and to get items from `nested dictionary` as
 	returned from `OpenWeatherMap.org`.
 
 	:copyright: (c) 2015 by Stefan Kuethe.
@@ -24,16 +24,32 @@ def load_config(filename):
 		data = f.read()
 	return json.loads(data)
 
+def __parse_key(key):
+	"""Helper function for `get_item`."""
+	if key[0] == "[":
+		key = int(key.strip("[]"))
+	return key
+
 def get_item(data, key, separator="/"):
-	"""Get item from nested dictionaries.
+	"""Get item from nested dictionary.
 
 	:param data: nested dictionary, e. g. ``data={"a": 2, "b": 4, "c": {"d": 6, "e": 8}}``
 	:param key: string in the form of <key><separator><key>...,
 	            e. g. ``key="c/d"`` will return ``data["c"]["d"]``
+	            if you got a list as well, ``key="c/d/[0]" will return ``data["c"]["d"][0]``
 	"""
 	keys = key.split(separator)
-	item = data[keys[0]]
+	item = data[__parse_key(keys[0])]
 	if len(keys) > 1:
 		for key in keys[1:]:
-			item = item[key]
+			item = item[__parse_key(key)]
 	return item
+
+def get_many(data, keys, *args, **kwargs):
+	"""Get multiple items from nested dictionary.
+
+	for details see `get_item` method
+	"""
+	items = [get_item(data, key, *args, **kwargs) for key in keys]
+	return tuple(items)
+
