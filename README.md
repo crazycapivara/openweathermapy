@@ -28,7 +28,7 @@ Python package to fetch weather data from `OpenWeatherMap.org`
 
 # fetch forecast data
 >>> from openweathermapy import get_forecast_data, ForecastData
->>> data = get_forcast_data(location, units="metric")
+>>> data = get_forecast_data(location, units="metric")
 >>> data = ForecastData(data)
 
 # to be continued
