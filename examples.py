@@ -1,21 +1,36 @@
 # -*- coding: utf-8 -*-
 # examples on how to use "openweathermapy"
 
-from openweathermapy import get_owm_data, utils
+import sys
+#from __future__ import print_function
+from openweathermapy import get_current_data, get_forecast_data, utils
 
-LOCATION = "Kassel,DE"
 
-def example1():
-	# fetch current weather data with temperatures in °C
-	current_weather_data = get_owm_data(LOCATION, units="metric")
-	print current_weather_data
+LOCATION_DEFAULT = "Kassel,DE"
 
-	# get current temperature from nested dictionaries
-	print utils.get_item(current_weather_data, "main/temp"), "Celsius"
+def example1(location):
+	# fetch current data with temperatures in C(elsius)
+	data = get_current_data(location, units="metric")
+	print data
 
-	# fetch current weather data with temperatures in K
-	current_weather_data = get_owm_data(LOCATION)
-	print utils.get_item(current_weather_data, "main/temp"), "Kelvin"
+	# get current temperature from nested dictionary
+	print utils.get_item(data, "main/temp"), "Celsius"
+
+	# fetch current weather data with temperatures in K(elvin)
+	data = get_current_data(location)
+	print utils.get_item(data, "main/temp"), "Kelvin"
+
+def example2(location):
+	# fetch forcast data with temperatures in C(elsius)
+	data = get_forecast_data(location, units="metric")
+	print data["list"] 
 
 if __name__ == "__main__":
-	example1()	
+	print "as first argument you can pass <city>, e. g. 'London,GB'"
+	if len(sys.argv) > 1:
+		location = sys.argv[1]
+	else:
+		location = LOCATION_DEFAULT
+	#example1(location)
+	example2(location)
+	
