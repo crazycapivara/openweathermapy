@@ -2,12 +2,11 @@
 Python package to fetch weather data from `OpenWeatherMap.org`
 
 # Usage
-## Current weather data
 ```Python
->>> from openweathermapy import get_current_data, OpenWeatherMapy
 >>> location = "London,GB"
 
 # fetch current weather data
+>>> from openweathermapy import get_current_data, OpenWeatherMapy
 >>> data = get_current_data(location, units="metric")
 >>> print data["main"]["temp"]
 11.06
@@ -20,14 +19,17 @@ Python package to fetch weather data from `OpenWeatherMap.org`
 # select multiple values
 >>> items = ["main/temp", "main/humidity", "wind/speed"]
 >>> print utils.get_many(data, items)
-(10.5, 58, 6.2)
+(11.06, 58, 6.2)
 
-# to be continued ...
-```
+# use OpenWeatherMap object (maybe object should be returned by default!?)
+>>> data = OpenWeatherMap(data)
+>>> print data.get_many(items)
+(11.06, 58, 6.2)
 
-## Forecast
-```Python
+# fetch forecast data
 >>> from openweathermapy import get_forecast_data, ForecastData
+>>> data = get_forcast_data(location, units="metric")
+>>> data = ForecastData(data)
 
 # to be continued
 ```
