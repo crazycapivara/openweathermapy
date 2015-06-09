@@ -2,7 +2,7 @@
 """
 	openweathermapy.openweathermapy
 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Core package containing functions to fetch data in `json-format`
+	Core module containing functions and classes to fetch data in `json-format`
 	from `OpenWeatherMap.org` and convert it to python types.
 
 	:copyright: (c) 2015 by Stefan Kuethe.
@@ -14,10 +14,31 @@ import utils
 
 # q=<city,country> (e. g. "Kassel,DE"), units can be "standard" or "metric"
 URL_CURRENT = "http://api.openweathermap.org/data/2.5/weather?q=%s&units=%s"
-URL_FORECAST = "http://api.openweathermap.org/data/2.5/forecast?q=%s&units=%"
+URL_FORECAST = "http://api.openweathermap.org/data/2.5/forecast?q=%s&units=%s"
 
-def get_owm_data(location, url=URL_CURRENT, units="standard"):
-	io_stream = urllib.urlopen(url %(location, units))
+def get_owm_data(url):
+	"""Return nested (data) dictionary for query (url)."""
+	io_stream = urllib.urlopen(url)
 	data = io_stream.read()
 	io_stream.close()
 	return json.loads(data)
+
+def wrapper_get_owm_data(func):
+	def inner(*args, **kwargs):
+		url = func(*args, **kwargs)
+		return get_owm_data(url)
+	return inner
+
+@wrapper_get_owm_data
+def get_current_data(location, units="standard"):
+	url = URL_CURRENT %(location, units)
+	return url
+
+@wrapper_get_owm_data
+def get_forecast_data(location, units="standard"):
+	url = URL_FORECAST %(location, units)
+	return url
+
+class ForecastData:
+	def __init__(self, data):
+		self.data = data
