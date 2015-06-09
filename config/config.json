@@ -1,0 +1,21 @@
+{
+	"default": [
+		"name",
+		"sys/country",
+		"main/temp",
+		"main/temp_max",
+		"main/temp_min"
+	],
+	"minimal": [
+		"name",
+		"sys/country",
+		"main/temp",
+		"weather/[0]/description"
+	],
+	"forecast": [ 
+		"dt_txt",
+		"main/temp",
+		"main/temp_max",
+		"weather/[0]/description"
+	]
+}

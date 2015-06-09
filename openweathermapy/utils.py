@@ -36,7 +36,7 @@ def get_item(data, key, separator="/"):
 	:param data: nested dictionary, e. g. ``data={"a": 2, "b": 4, "c": {"d": 6, "e": 8}}``
 	:param key: string in the form of <key><separator><key>...,
 	            e. g. ``key="c/d"`` will return ``data["c"]["d"]``
-	            if you got a list as well, ``key="c/d/[0]" will return ``data["c"]["d"][0]``
+	            if you got a list as well, ``key="c/d/[0]"`` will return ``data["c"]["d"][0]``
 	"""
 	keys = key.split(separator)
 	item = data[__parse_key(keys[0])]
