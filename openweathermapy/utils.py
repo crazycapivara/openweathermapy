@@ -53,3 +53,17 @@ def get_many(data, keys, *args, **kwargs):
 	items = [get_item(data, key, *args, **kwargs) for key in keys]
 	return tuple(items)
 
+class _nested_dict(dict):
+	"""Dictionary, which is browsable like a filesystem."""
+	def __call__(self, key):
+		if type(key) == list:
+			return self.get_many(key)
+		return self.get(key)
+
+	def get(self, key):
+		return get_item(self, key)
+
+	def get_many(self, keys):
+		return get_many(self, keys)
+
+
