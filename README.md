@@ -14,32 +14,32 @@ item = data["main/temp"]
 # Status
 Development
 
-# Note
-**2015-06-11**
-examples will be removed and replaced by new ones as soon as possible, because of some API changes
+# Notes
+**2015-06-11:**
+Examples will be removed and replaced by new ones as soon as possible, because of some API changes.
 
 # Version
 0.0.1
 
 # Usage
 ```Python
-import openweathermapy import as owm
+import openweathermapy as owm
 
-# fetch current weather data for "London,GB"
+# fetch current (weather) data
 location = "London,GB"
 data = owm.get_current_data(location, units="metric")
 
-# you can access data as you browse a filesystem
+# you can access items as you browse your filesystem
 print data("main/temp")
 [OUT]:
 11.06
 
-# if you prefer the classic way, it is also possible  ...
+# if you prefer the classic way, it is also possible
 print data["main"]["temp"]
 [OUT]:
 11.06
 
-# select multiple values
+# fetch multiple values
 items = ["main/temp", "main/humidity", "wind/speed"]
 print data.get_many(items)
 [OUT]:
