@@ -95,7 +95,7 @@ for station in stations:
 from openweathermapy import utils
 
 keys = load_config("config.json")["default"]
-selection = forecast_data.get_list(keys)
+selection = utils.forecast_data.get_list(keys)
  
 # to be continued ...
 ```
