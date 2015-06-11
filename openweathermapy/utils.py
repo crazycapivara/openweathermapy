@@ -4,7 +4,7 @@
 	~~~~~~~~~~~~~~~~~~~~~
 	utility module containing functions to load settings from
 	`json-file(s)` and to get items from `nested dictionary` as
-	returned from `OpenWeatherMap.org`.
+	returned by `OpenWeatherMap.org`.
 
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
@@ -53,7 +53,8 @@ def get_many(data, keys, *args, **kwargs):
 	items = [get_item(data, key, *args, **kwargs) for key in keys]
 	return tuple(items)
 
-class _nested_dict(dict):
+# should be renamed to NestedDict!?
+class nested_dict(dict):
 	"""Dictionary, which is browsable like a filesystem."""
 	def __call__(self, key):
 		if type(key) == list:
