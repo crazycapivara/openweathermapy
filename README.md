@@ -1,35 +1,54 @@
 # openweathermapy
-Python package to fetch weather data from `OpenWeatherMap.org`
+Python package to fetch weather data from *OpenWeatherMap.org*.
+
+As *OpenWeatherMap.org* returns data mostly as nested dictionaries,
+*openweathermapy* allows browsing your data as you browse your filesystem:
+```Python
+# classic access
+item = data["main"]["temp"]
+
+# openweathermapy access (classic access is also possible)
+item = data["main/temp"]
+```
+
+# Status
+Development
+
+# Note
+**2015-06-11**
+examples will be removed and replaced by new ones as soon as possible, because of some API changes
+
+# Version
+0.0.1
 
 # Usage
 ```Python
->>> location = "London,GB"
+import openweathermapy import as owm
 
-# fetch current weather data
->>> from openweathermapy import get_current_data, OpenWeatherMapy
->>> data = get_current_data(location, units="metric")
->>> print data["main"]["temp"]
+# fetch current weather data for "London,GB"
+location = "London,GB"
+data = owm.get_current_data(location, units="metric")
+
+# you can access data as you browse a filesystem
+print data("main/temp")
+[OUT]:
 11.06
 
-# use utils module for nested dictionaries
->>> from openweathermapy import utils
->>> print utils.get_item(data, "main/temp")
+# if you prefer the classic way, it is also possible  ...
+print data["main"]["temp"]
+[OUT]:
 11.06
 
 # select multiple values
->>> items = ["main/temp", "main/humidity", "wind/speed"]
->>> print utils.get_many(data, items)
-(11.06, 58, 6.2)
-
-# use OpenWeatherMap object (maybe object should be returned by default!?)
->>> data = OpenWeatherMap(data)
->>> print data.get_many(items)
+items = ["main/temp", "main/humidity", "wind/speed"]
+print data.get_many(items)
+[OUT]:
 (11.06, 58, 6.2)
 
 # fetch forecast data
->>> from openweathermapy import get_forecast_data, ForecastData
->>> data = get_forecast_data(location, units="metric")
->>> data = ForecastData(data)
+location = "Kassel,DE"
+data = owm.get_forecast_data(location, units="metric")
+[...]
 
-# to be continued
+# to be continued ...
 ```
