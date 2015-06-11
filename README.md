@@ -20,9 +20,8 @@ At the moment just copy *openweatherimapy folder* to your python *site-packages 
 *setup.py* will be added ... soon
 
 # Notes
-**2015-06-11:**
 
-Examples will be removed and replaced by new ones as soon as possible, because of some API changes.
+See TODO and CHANGELOG (not added yet).
 
 # Version
 0.1.0
