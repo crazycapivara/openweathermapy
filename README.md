@@ -8,7 +8,7 @@ As *OpenWeatherMap.org* returns data mostly as nested dictionaries,
 item = data["main"]["temp"]
 
 # openweathermapy access (classic access is also possible)
-item = data["main/temp"]
+item = data("main/temp")
 ```
 
 # Status
