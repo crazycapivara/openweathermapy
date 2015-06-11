@@ -15,7 +15,7 @@ item = data("main/temp")
 Development
 
 # Installation
-At the moment just copy *openweatherimapy folder* to your python *site-packages folder* or into your *project folder*.
+At the moment just copy *openweathermapy folder* to your python *site-packages folder* or into your *project folder*.
 
 *setup.py* will be added ... soon
 
@@ -34,19 +34,16 @@ import openweathermapy as owm
 location = "London,GB"
 data = owm.get_current_data(location, units="metric")
 
-# you can access items as you browse your filesystem
+# just access items the way you browse your filesystem
 print data("main/temp")
-[OUT]:
-11.06
 
-# if you prefer the classic way, it is also possible
-print data["main"]["temp"]
 [OUT]:
 11.06
 
 # fetch multiple items at once
 keys = ["main/temp", "main/humidity", "wind/speed"]
 print data.get_many(keys)
+
 [OUT]:
 (11.06, 58, 6.2)
 
@@ -54,9 +51,10 @@ print data.get_many(keys)
 location = "Kassel,DE"
 data = owm.get_forecast_data(location, units="metric")
 
-selection = ["dt_txt", "main/temp", "weather/[0]/description"]
-for line in data.get_list(selection)
+keys = ["dt_txt", "main/temp", "weather/[0]/description"]
+for line in data.get_list(keys)
 	print line
+
 [OUT]:
 (u'2015-06-11 18:00:00', 13.54, u'few clouds')
 (u'2015-06-11 21:00:00', 10.21, u'sky is clear')
@@ -87,5 +85,17 @@ for station in stations:
 (u'DB0LEN-2', 66.077)
 (u'DH5DY-6', 67.692)
 
+# using config files in `json` format
+   # config.json
+   {
+	"default": ["dt_txt", "main/temp", "weather/[0]/description"],
+	"minimal": ["dt_txt", "main/temp"]
+   }
+
+from openweathermapy import utils
+
+keys = load_config("config.json")["default"]
+selection = forecast_data.get_list(keys)
+ 
 # to be continued ...
 ```
