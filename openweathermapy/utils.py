@@ -2,41 +2,59 @@
 """
 	openweathermapy.utils
 	~~~~~~~~~~~~~~~~~~~~~
-	utility module containing functions to load settings from
-	`json-file(s)` and to get items from `nested dictionary` as
-	returned by `OpenWeatherMap.org`.
+	Utility module containing functions to load settings from
+	`json-file(s)` and to access items from `nested dictionaries` (as
+	returned by `OpenWeatherMap.org`) in the way you browse a filesystem.
 
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
 
 import json
+import urllib
 
 __author__ = "Stefan Kuethe"
 __license__ = "GPLv3"
 
-def load_config(filename):
-	"""Fetch settings from `json-file`.
+def get_url_response(url):
+	"""Get (raw) data for given `url`."""
+	io_stream = urllib.urlopen(url)
+	data = io_stream.read()
+	io_stream.close()
+	return data
 
-	:return: dictionary
-	"""
+def load_config(filename):
+	"""Fetch settings from `json` file and return dictionary."""
 	with file(filename) as f:
 		data = f.read()
 	return json.loads(data)
 
 def __parse_key(key):
-	"""Helper function for `get_item`."""
+	"""Helper function for `get_item` method."""
 	if key[0] == "[":
 		key = int(key.strip("[]"))
 	return key
 
 def get_item(data, key, separator="/"):
-	"""Get item from nested dictionary.
+	"""Get item from nested dictionary in a simplified way.
 
-	:param data: nested dictionary, e. g. ``data={"a": 2, "b": 4, "c": {"d": 6, "e": 8}}``
-	:param key: string in the form of <key><separator><key>...,
-	            e. g. ``key="c/d"`` will return ``data["c"]["d"]``
-	            if you got a list as well, ``key="c/d/[0]"`` will return ``data["c"]["d"][0]``
+	Examples:
+	   >>> data = {"a": 2, "b": 4, "c": {"d": 6, "e": 8}}
+	   >>> data("c/d")
+	   6
+	   # equals
+	   >>> data["c"]["d"]
+	   6
+
+	   >>> data = {"a": 2, "b": [4, 6]}
+	   >>> data("b/[0]")
+	   4
+	   # equals
+	   >>> data["b"][0]
+	   4
+
+	:param data: nested dictionary
+	:param key: string in the form of <key><separator><key>...
 	"""
 	keys = key.split(separator)
 	item = data[__parse_key(keys[0])]
@@ -48,23 +66,57 @@ def get_item(data, key, separator="/"):
 def get_many(data, keys, *args, **kwargs):
 	"""Get multiple items from nested dictionary.
 
-	for details see `get_item` method
+	For details see `get_item` method.
 	"""
 	items = [get_item(data, key, *args, **kwargs) for key in keys]
 	return tuple(items)
 
 # should be renamed to NestedDict!?
 class nested_dict(dict):
-	"""Dictionary, which is browsable like a filesystem."""
+	"""Dictionary, which is accessible like a filesystem.
+
+	For example `data("main/name")` equals `data["main"]["name"]`.
+
+	For details see `utils.get_item` method.
+	"""
 	def __call__(self, key):
 		if type(key) == list:
 			return self.get_many(key)
 		return self.get(key)
 
 	def get(self, key):
+		"""Get single item."""
 		return get_item(self, key)
 
 	def get_many(self, keys):
-		return get_many(self, keys)
+		"""Get multiple items."""
+		return tuple([self.get(key) for key in keys])
+		#return get_many(self, keys)
 
+class NestedDict(nested_dict):
+	pass
+
+class NestedDictList(list):
+	"""List of (nested) dictionaries (with same keys).
+
+	Example:
+	   >>> data = NestedDictList(
+	        [{"name": "Peter", "nick": "p", "more": {"phone": 888}},
+	          {"name": "Jane",  "nick": "j", "more": {"phone": 777}}]
+	       )
+
+	   # Extract nick and phone
+	   >>> data.select(["nick", "more/phone"])
+	   [("p", 888), ("j", 777)]	
+	"""
+
+	def __init__(self, data):
+		list.__init__(self, [NestedDict(line) for line in data])
+
+	def __call__(self, keys):
+		return self.select(keys)
+
+	def select(self, keys):
+		selection = [line.get_many(keys) for line in self]
+		return selection
 
