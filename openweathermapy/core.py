@@ -77,6 +77,18 @@ class get_decorator(object):
 			return self.get(**_params)
 		return inner
 
+# Same as above, but without class!
+def dec_me(appendix):
+	wrapper = wrap_get(appendix)
+	def decorator(f):
+		@functools.wraps(f)
+		def call(*args, **params):
+			_params = f(*args, **params)
+			data = wrapper(**_params)
+			return data
+		return call
+	return decorator
+
 get_owm_data = get
 
 def get_current(**params):
@@ -93,9 +105,11 @@ def get_current_group(ids, **params):
 # Maybe decorator is nicer and more state of the art!?
 # But in this case "data parser function" should also be an argument!?
 # Furthermore, `functool.wrap` should be used to parse docstring!
-@get_decorator("forecast")
+#@get_decorator("forecast")
+@dec_me("forecast")
 def get_forecast_test(loc, **params):
-	params.update({"loc": loc})
+	"""This docstring should be wrapped!"""
+	params["loc"] = loc
 	return params
 
 def get_daily(loc, **params):
