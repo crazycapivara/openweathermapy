@@ -9,28 +9,36 @@
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
-
+from __future__ import print_function
 import json
-import urllib
+# Python3 compatibility (maybe `six` package should be used!?)
+try:
+	from urllib import urlopen, urlencode
+except ImportError:
+	from urllib.request import urlopen
+	from urllib.parse import urlencode
 
 __author__ = "Stefan Kuethe"
 __license__ = "GPLv3"
 
-def get_url_response(url):
-	"""Get (raw) data for given `url`."""
-	io_stream = urllib.urlopen(url)
-	data = io_stream.read()
-	io_stream.close()
+def get_url_response(url, **params):
+	"""Get (raw) data for given `url` (and **params)."""
+	if params:
+		url = url+"?"+urlencode(params)
+	response = urlopen(url)
+	data = response.read()
+	response.close()
 	return data
 
 def load_config(filename):
 	"""Fetch settings from `json` file and return dictionary."""
 	with file(filename) as f:
 		data = f.read()
-	return json.loads(data)
+	# Decoding: Python3 compatibility
+	return json.loads(data.decode("ascii"))
 
 def __parse_key(key):
-	"""Helper function for `get_item` method."""
+	"""Helper function for `get_item` function."""
 	if key[0] == "[":
 		key = int(key.strip("[]"))
 	return key

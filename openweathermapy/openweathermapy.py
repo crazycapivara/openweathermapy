@@ -16,9 +16,12 @@
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
+import functools
 import urllib
 import json
-import utils
+from . import utils
+from . import wrapper as _wrapper
+
 
 UNITS = "standard"
 LANGUAGE = "en"
@@ -43,46 +46,54 @@ URL_ICON = "http://openweathermap.org/img/w/%s.png"
 
 URL_CITY_LIST = "http://openweathermap.org/help/city_list.txt"
 
-def get_owm_data(url):
-	"""Return data as (nested) dictionary for given `url` request."""
-	#io_stream = urllib.urlopen(url)
-	#data = io_stream.read()
-	#io_stream.close()
+def get(url):
+	"""Return data as (nested) dictionary for given `url` (request)."""
 	data = utils.get_url_response(url)
 	return json.loads(data)
 
-# do not fetch complete list in any case!?
-"""
-def search_city(city):
-	io_stream = urllib.urlopen(URL_CITY_LIST)
-	data = [line for line in io_stream if line.find(city) == 0]
-	io_stream.close()
-	return data
-"""
+get_owm_data = get
 
-# should search more than one city at once... if wanted!
-# save_city_list would be nice for faster search access afterwards
-# maybe it should be returned as MemoryFile!? 
-def get_city_list(filename=None, search_city=None):
-	if filename:
-		with file(filename) as f:
-			data = f.read().splitlines()
-	else:
-		data = utils.get_url_response(URL_CITY_LIST).splitlines()
+def _parse_city_data(data, search, rdict):
+	"""Helper function for `get_cities_...`"""
 	data = [tuple(line.split("\t")) for line in data]
-	if search_city:
-		data = [line for line in data if line[1].find(search_city) == 0]
-	return data
+	keys = data.pop(0)
+	if search:
+		data = [line for line in data if line[1].find(search) >= 0]
+	if rdict:
+		return [dict(zip(keys, line)) for line in data]
+	return (keys, data)
 
-# key should be icon, data is not needed!
+def get_cities_from_file(filename, search=None, rdict=False):
+	"""Get cities from file."""
+	with file(filename) as f:
+		data = f.read().splitlines()
+	return _parse_city_data(data, search, rdict)
+	
+ 
+def get_cities(search=None, rdict=False):
+	"""Get cities from url."""
+	data = utils.get_url_response(URL_CITY_LIST).splitlines()
+	return _parse_city_data(data, search, rdict)
+
+def save_cities(filename):
+	"""Get cities form url and save it to given `filename`."""
+	data = utils.get_url_response(URL_CITY_LIST).splitlines()
+	with file(filename, "w") as f:
+		f.write(data)
+
 def get_icon_url(icon_name):
-		return URL_ICON %icon_name
+	"""Get icon url for given `icon_name`."""
+	return URL_ICON %icon_name
 
-# obsolete, use wrapper class instead!
-def wrapper_get_owm_data(func):
+# New: now docstring is wrapped as well
+def wrapper_get(func):
+	@functools.wraps(func)
 	def inner(*args, **kwargs):
-		url = func(*args, **kwargs)
-		return get_owm_data(url)
+		url, parser = func(*args, **kwargs)
+		data = get_owm_data(url)
+		if parser:
+			data = parser(data)
+		return parser
 	return inner
 
 class wrapper(object):
@@ -131,8 +142,8 @@ def split_data(data):
 	   and return tuple in the form of `(meta_data, weather_data_list)`.
 	"""
 	list_ = utils.NestedDictList(data.pop("list"))
-	meta_data = utils.NestedDict(data)
-	return (meta_data, list_)
+	hangover = utils.NestedDict(data)
+	return (hangover, list_)
 
 class ForecastData(utils.NestedDict):
 	def iter_list(self, keys=None):
@@ -165,10 +176,10 @@ class StationData(list):
 class Station(utils.nested_dict):
 	pass
 
-@wrapper
-def get_current_data(location, units=UNITS, language=LANGUAGE):
-	"""Here comes the doc string, will this one be displayed? or the one from the wrapper?"""
-	#maybe another wrapper is needed for get_by_id or by_coord!?
+
+#@wrapper_get
+def get_current(location, units=UNITS, language=LANGUAGE):
+	"""Get current weather data for given `location`."""
 	if type(location) == int:
 		_url = URL_CURRENT_ID
 	elif type(location) == tuple:
@@ -176,9 +187,47 @@ def get_current_data(location, units=UNITS, language=LANGUAGE):
 	else:
 		_url = URL_CURRENT
 	url = _url %(location, units, language)
-	#return (url, CurrentData)
-	return (url, utils.NestedDict)
-	#return get_owm_data(url)
+	#return (url, utils.NestedDict)
+	return utils.NestedDict(get(url))
+
+def get_current_test(location, units=UNITS, language=LANGUAGE):
+	@_wrapper.TypeWrapperMore(location)
+	def get_url(*args):
+		return (URL_CURRENT, URL_CURRENT_ID)
+	url = get_url(units, language)
+	return url
+
+# NEW STYLE!
+def current(location, **params):
+	params.update({"loc": location})
+	@_wrapper.Get(BASE_URL+"weather")
+	def get_url():
+		return params
+	return utils.NestedDict(get(get_url()))
+
+get_current_data = get_current
+
+def forecast(location, **params):
+	params.update({"loc": location})
+	@_wrapper.Get(BASE_URL+"forecast")
+	def get_url():
+		return params
+	return split_data(get(get_url()))
+
+# Testing only
+def forecast_alternative(location, **params):
+	params.update({"loc": location})
+	wrapper = _wrapper._Get(BASE_URL+"forecast")
+	url = wrapper(params)
+	return split_data(get(url))
+
+def current_group(ids, **params):
+	locations = ",".join([str(id) for id in ids])
+	params.update({"id": locations})
+	@_wrapper.Get(BASE_URL+"group")
+	def get_url():
+		return params
+	return split_data(get(get_url()))
 
 @wrapper
 def get_current_data_group(ids, units="standard", language="en"):

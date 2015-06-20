@@ -17,7 +17,7 @@
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
 import functools
-import urllib # still needed?
+#import urllib # still needed?
 import json
 from . import utils
 from . import wrapper as _wrapper
@@ -33,6 +33,7 @@ KASSEL_LATITUDE = 51.32
 KASSEL_LONGITUDE = 9.5
 
 BASE_URL="http://api.openweathermap.org/data/2.5/"
+# can all be kicked out!
 # q=<city,country> (e. g. "Kassel,DE"), units can be "standard" or "metric"
 URL_CURRENT = BASE_URL+"weather?q=%s&units=%s&lang=%s"
 URL_CURRENT_ID = BASE_URL+"weather?id=%d&units=%s&lang=%s"
@@ -49,11 +50,14 @@ URL_CITY_LIST = "http://openweathermap.org/help/city_list.txt"
 def get(url, **params):
 	"""Return data as (nested) dictionary for given `url` (request)."""
 	data = utils.get_url_response(url, **params)
-	return json.loads(data)
+	# Decoding: Python3 compatibility
+	return json.loads(data.decode("utf-8"))
 
 def wrap_get(appendix):
 	url = BASE_URL+appendix
-	def _get(**params):
+	def call(loc=None, **params):
+		if loc:
+			params["loc"] = loc
 		if params.get("loc"):
 			loc = params.pop("loc")
 			if type(loc) == int:
@@ -64,59 +68,97 @@ def wrap_get(appendix):
 				params["q"] = loc
 		data = get(url, **params)
 		return data
-	return _get
+	return call
 
 # Only for testing purposes, works fine, but not useful in most cases!?
 class get_decorator(object):
 	def __init__(self, appendix):
-		self.get = wrap_get(appendix)
+		self._get = wrap_get(appendix)
 
 	def __call__(self, f):
 		def inner(*args, **params):
 			_params = f(*args, **params)
-			return self.get(**_params)
+			return self._get(**_params)
 		return inner
 
 # Same as above, but without class!
-def dec_me(appendix):
-	wrapper = wrap_get(appendix)
-	def decorator(f):
+def decorate_get(appendix):
+	_get = wrap_get(appendix)
+	def decorate(f):
 		@functools.wraps(f)
 		def call(*args, **params):
 			_params = f(*args, **params)
-			data = wrapper(**_params)
+			data = _get(**_params)
 			return data
 		return call
-	return decorator
+	return decorate
 
 get_owm_data = get
 
-def get_current(**params):
-	current = wrap_get("weather")
-	data = current(**params)
+def get_current(city=None, **params):
+	"""Get current weather data."""
+	data = wrap_get("weather")(city, **params)
 	return data
 
+def get_current_group(city_ids, **params):
+	"""Get current weather data for multiple cities at once."""
+	id_ = ",".join([str(id_) for id_ in city_ids])
+	params["id"] = id_ 
+	data = wrap_get("group")(**params)
+	return data
+
+def get_current_station(station_id=None, **params):
+	"""Tested. Works fine."""
+	data = wrap_get("station")(station_id, **params)
+	return data
+
+def get_current_station_box(**params):
+	pass
+
+def get_current_station_geo(geo_point=None, **params):
+	"""..."""
+	data = wrap_get("station/find")(geo_point, **params)
+	return data
+
+def get_current_box(**params):
+	"""Not tested."""
+	data = wrap_get("box/city")(**params)
+	return data
+
+# move up!
+def get_current_cycle(center_point=None, **params):
+	"""Tested. Works fine, but country code is not submitted!"""
+	data = wrap_get("find")(center_point, **params)
+	return data
+
+def get_forecast(city=None, **params):
+	"""Get 3h forecast data."""
+	data = wrap_get("forecast")(city, **params)
+	return data
+
+def get_forecast_daily(city=None, **params):
+	"""Get daily forcast data."""
+	data = wrap_get("forecast/daily")(city, **params)
+	return data
+
+# ----------------------------------------------------------------
+
 @get_decorator("group")
-def get_current_group(ids, **params):
+def get_current_group_test(ids, **params):
 	loc = ",".join([str(id) for id in ids])
 	params.update({"id": loc})
 	return params
+
 
 # Maybe decorator is nicer and more state of the art!?
 # But in this case "data parser function" should also be an argument!?
 # Furthermore, `functool.wrap` should be used to parse docstring!
 #@get_decorator("forecast")
-@dec_me("forecast")
+@decorate_get("forecast")
 def get_forecast_test(loc, **params):
 	"""This docstring should be wrapped!"""
 	params["loc"] = loc
 	return params
-
-def get_daily(loc, **params):
-	params.update({"loc": loc})
-	daily = wrap_get("forecast/daily")
-	data = daily(**params)
-	return data
 
 @get_decorator("station/find")
 def get_stations(loc, **params):
