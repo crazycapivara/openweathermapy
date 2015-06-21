@@ -47,6 +47,9 @@ print data.get_many(keys)
 [OUT]:
 (11.06, 58, 6.2)
 
+# if you like one liners ...
+data = owm.get_current_data("Kassel,DE", units="metric").get_many(keys)
+
 # fetch forecast data
 location = "Kassel,DE"
 data = owm.get_forecast_data(location, units="metric")
