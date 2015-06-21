@@ -95,6 +95,14 @@ def decorate_get(appendix):
 
 get_owm_data = get
 
+class DataBlock(utils.NestedDictList):
+	"""Class for all OWM responses containing list with weather data."""
+	def __init__(self, data):
+		utils.NestedDictList.__init__(self, data.pop("list"))
+		self.info = utils.NestedDict(data)
+
+# check names of functions ... (see forecast.io naming convention!?)
+#get_current_city!? or default always city? set alias?
 def get_current(city=None, **params):
 	"""Get current weather data."""
 	data = wrap_get("weather")(city, **params)
@@ -131,7 +139,7 @@ def get_current_cycle(center_point=None, **params):
 	data = wrap_get("find")(center_point, **params)
 	return data
 
-def get_forecast(city=None, **params):
+def get_forecast_hourly(city=None, **params):
 	"""Get 3h forecast data."""
 	data = wrap_get("forecast")(city, **params)
 	return data
@@ -139,6 +147,11 @@ def get_forecast(city=None, **params):
 def get_forecast_daily(city=None, **params):
 	"""Get daily forcast data."""
 	data = wrap_get("forecast/daily")(city, **params)
+	return data
+
+# does not work very well!?
+def get_history(city=None, **params):
+	data = wrap_get("history/city")(city, **params)
 	return data
 
 # ----------------------------------------------------------------

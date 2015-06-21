@@ -43,7 +43,9 @@ def __parse_key(key):
 		key = int(key.strip("[]"))
 	return key
 
-def get_item(data, key, separator="/"):
+KEY_SEPARATOR = "/"
+
+def get_item(data, key):
 	"""Get item from nested dictionary in a simplified way.
 
 	Examples:
@@ -64,19 +66,19 @@ def get_item(data, key, separator="/"):
 	:param data: nested dictionary
 	:param key: string in the form of <key><separator><key>...
 	"""
-	keys = key.split(separator)
+	keys = key.split(KEY_SEPARATOR)
 	item = data[__parse_key(keys[0])]
 	if len(keys) > 1:
 		for key in keys[1:]:
 			item = item[__parse_key(key)]
 	return item
 
-def get_many(data, keys, *args, **kwargs):
+def get_many(data, keys):
 	"""Get multiple items from nested dictionary.
 
 	For details see `get_item` method.
 	"""
-	items = [get_item(data, key, *args, **kwargs) for key in keys]
+	items = [get_item(data, key) for key in keys]
 	return tuple(items)
 
 # should be renamed to NestedDict!?
