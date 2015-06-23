@@ -3,7 +3,7 @@
 	openweathermapy.utils
 	~~~~~~~~~~~~~~~~~~~~~
 	Utility module containing functions and classes to handle nested dictionaries
-	(as returned by *OpenWeatherMap.org*) in simplified and flexible way.
+	(as returned by *OpenWeatherMap.org*) in a simplified and flexible way.
 
 	Furthermore, it includes functions to load settings from config file in
 	 `json` format and to retrieve data for a given url request.

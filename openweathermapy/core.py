@@ -78,7 +78,6 @@ def wrap_get(appendix, settings=None):
 		return data
 	return call
 
-
 class Decorator(object):
 	"""Decorator for `get`.
 
@@ -88,14 +87,15 @@ class Decorator(object):
 	"""
 	def __init__(self, appendix, settings=None, data_type=None):
 		self.get = wrap_get(appendix, settings)
+		self.data_type = data_type
 
 	def __call__(self, f):
 		@functools.wraps(f)
 		def call(*args, **kwargs):
 			params = f(*args, **kwargs)
 			data = self.get(**params)
-			if data_type:
-				data = data_type(data)
+			if self.data_type:
+				data = self.data_type(data)
 			return data
 		return call
 
@@ -218,4 +218,11 @@ def get_history(city=None, **params):
 	"""
 	data = wrap_get("history/city")(city, **params)
 	return data
+
+# Test of `Decorator` class
+@Decorator("forecast", dict(units="metric"), DataBlock)
+def _get_forecast_hourly(city, **params):
+	"""This docstring should be wrapped by functools!"""
+	params["loc"] = city
+	return params
 

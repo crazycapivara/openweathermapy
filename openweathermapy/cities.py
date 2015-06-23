@@ -31,7 +31,7 @@ class CityData(object):
 		self.data = data
 
 	def get_keys(self):
-		"""Get columns names, usually not needed."""
+		"""Get column names, usually not needed."""
 		return self.keys
 
 	def get_data(self):
