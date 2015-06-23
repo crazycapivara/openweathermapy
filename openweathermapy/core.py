@@ -2,98 +2,107 @@
 """
 	openweathermapy.core
 	~~~~~~~~~~~~~~~~~~~~
-	Core module containing functions and classes to fetch data in `json-format`
-	from `OpenWeatherMap.org` and convert it to python types.
-	Items of returned data (mostly nested dictionaries) can be accessed in the way
-	you browse your filesystem:
+	Core module containing functions and classes to fetch and handle data from
+	*OpenWeatherMap.org*. It wraps API 2.5. Items of returned data (mostly nested
+	dictionaries) can be accessed in a simplified and flexible way:
 
-	`item = data("main/temp")` equals `item = data["main"]["temp"]`
+	   # openweathermapy access
+	   >>> item = data("main.temp")
+	   
+	   # equals
+	   >>> item = data["main"]["temp"]
 
-	Multiple items can be fetched at once by passing a list of keys:
+	   # multiple items can be fetched at once by passing a list of keys
+	   >>> items = data(["main.temp", "wind.speed"])
 
-	`items = data(["main/temp", "wind/speed"])`
+	Base functions and classes to handle nested dictionaries are located
+	in `openweathermapy.utils`.
+
+	For a complete list of `**params`, which can be passed to the functions
+	in this module, refer to API documentation on http://openweathermap.org.
+	They always depend on the request, but unsupported parameters
+	will (normally) not raise an error. Most common ones to be used are "units",
+	"lang" and (if needed) "APIKEY". So, it may be a good idea to pass them in
+	form of a settings dictionary:
+
+	   >>> settings = {"units": "metric", "lang": "de"}
+	   >>> data = get_current("Kassel,de", **settings)
 
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
 import functools
-#import urllib # still needed?
 import json
 from . import utils
-from . import wrapper as _wrapper
 
-
-UNITS = "standard"
-LANGUAGE = "en"
+__author__ = "Stefan Kuethe"
+__license__ = "GPLv3"
 
 # ("Kassel,DE", "Malaga,ES", "New York,US")
 CITIES = (2892518, 2514256, 5128581)
 
+# Geographic coordinates for "Kassel,DE"
 KASSEL_LATITUDE = 51.32
 KASSEL_LONGITUDE = 9.5
+KASSEL_LOC = (KASSEL_LATITUDE, KASSEL_LONGITUDE)
 
 BASE_URL="http://api.openweathermap.org/data/2.5/"
-# can all be kicked out!
-# q=<city,country> (e. g. "Kassel,DE"), units can be "standard" or "metric"
-URL_CURRENT = BASE_URL+"weather?q=%s&units=%s&lang=%s"
-URL_CURRENT_ID = BASE_URL+"weather?id=%d&units=%s&lang=%s"
-URL_CURRENT_GROUP = BASE_URL+"group?id=%s&units=%s&lang=%s" 
-URL_FORECAST = BASE_URL+"forecast?q=%s&units=%s&lang=%s"
-URL_FORECAST_ID = BASE_URL+"forecast?id=%s&units=%s&lang=%s"
-# lat=<latitude>, lon=<longitude>, cnt=<number of stations>
-URL_SEARCH_STATIONS = BASE_URL+"station/find?lat=%d&lon=%d&cnt=%d"
-
 URL_ICON = "http://openweathermap.org/img/w/%s.png" 
 
-URL_CITY_LIST = "http://openweathermap.org/help/city_list.txt"
-
 def get(url, **params):
-	"""Return data as (nested) dictionary for given `url` (request)."""
+	"""Return data as (nested) dictionary for `url` request."""
 	data = utils.get_url_response(url, **params)
 	# Decoding: Python3 compatibility
 	return json.loads(data.decode("utf-8"))
 
-def wrap_get(appendix):
+def wrap_get(appendix, settings=None):
+	"""Wrap `get` function by setting url to `BASE_URL+appendix`.
+
+	Moreover, as optinal argument `loc` can be passed to
+	wrapped function, where loc can either be a (city) name, a (city) id
+	or geographic coordinates.
+	"""
 	url = BASE_URL+appendix
 	def call(loc=None, **params):
 		if loc:
 			params["loc"] = loc
-		if params.get("loc"):
-			loc = params.pop("loc")
 			if type(loc) == int:
 				params["id"] = loc
 			elif type(loc) == tuple:
 				params.update({"lat": loc[0], "lon": loc[1]})
 			else:
 				params["q"] = loc
+		if settings:
+			params.update(settings)
 		data = get(url, **params)
 		return data
 	return call
 
-# Only for testing purposes, works fine, but not useful in most cases!?
-class get_decorator(object):
-	def __init__(self, appendix):
-		self._get = wrap_get(appendix)
+
+class Decorator(object):
+	"""Decorator for `get`.
+
+	Gives more or less same functionality as `get_wrap`,
+	except that `data_type` can be passed and furthermore,
+	it is *real* decorator! 
+	"""
+	def __init__(self, appendix, settings=None, data_type=None):
+		self.get = wrap_get(appendix, settings)
 
 	def __call__(self, f):
-		def inner(*args, **params):
-			_params = f(*args, **params)
-			return self._get(**_params)
-		return inner
-
-# Same as above, but without class!
-def decorate_get(appendix):
-	_get = wrap_get(appendix)
-	def decorate(f):
 		@functools.wraps(f)
-		def call(*args, **params):
-			_params = f(*args, **params)
-			data = _get(**_params)
+		def call(*args, **kwargs):
+			params = f(*args, **kwargs)
+			data = self.get(**params)
+			if data_type:
+				data = data_type(data)
 			return data
 		return call
-	return decorate
 
-get_owm_data = get
+def get_icon_url(weather_data):
+	"""Get icon url from `weather_data`."""
+	icon = weather_data["weather"][0]["icon"]
+	return URL_ICON %icon
 
 class DataBlock(utils.NestedDictList):
 	"""Class for all OWM responses containing list with weather data."""
@@ -101,284 +110,112 @@ class DataBlock(utils.NestedDictList):
 		utils.NestedDictList.__init__(self, data.pop("list"))
 		self.info = utils.NestedDict(data)
 
-# check names of functions ... (see forecast.io naming convention!?)
-#get_current_city!? or default always city? set alias?
+class WeatherData(utils.NestedDict):
+	def get_icon_url(self):
+		#return self["weather"][0]["icon"]
+		return get_icon_url(self)
+
 def get_current(city=None, **params):
-	"""Get current weather data."""
+	"""Get current weather data for `city`.
+	
+	Args:
+	   city (str, int or tuple): either city name, city id
+	      or geographic coordinates (latidude, longitude)
+	   **params: units, lang[, zip]
+
+	Examples:
+	   # get data by city name and country code
+	   >>> data = get_current("Kassel,de")
+
+	   # get data by city id and set language to german (de)
+	   >>> data = get_current(2892518, lang="de")
+
+	   # get data by latitude and longitude and return temperatures in Celcius
+	   >>> location = (51.32, 9.5)
+	   >>> data = get_current(location, units="metric")
+
+	   # optinal: skip city argument and get data by zip code
+	   >>> data = get_current(zip="34128,de") 
+	"""
 	data = wrap_get("weather")(city, **params)
-	return data
+	return WeatherData(data)
 
-def get_current_group(city_ids, **params):
-	"""Get current weather data for multiple cities at once."""
-	id_ = ",".join([str(id_) for id_ in city_ids])
-	params["id"] = id_ 
+def get_current_for_group(city_ids, **params):
+	"""Get current weather data for multiple cities.
+
+	Args:
+	   city_ids (tuple): list of city ids,
+	   **params: units, lang
+
+	Example:
+	   # get data for 'Malaga,ES', 'Kassel,DE', 'New York,US'
+	   >>> data = get_current_group((2892518, 2514256, 5128581), units="metric")
+	"""
+	id_str = ",".join([str(id_) for id_ in city_ids])
+	params["id"] = id_str 
 	data = wrap_get("group")(**params)
+	return DataBlock(data)
+
+def find_city(city, **params):
+	"""Search for `city` and return current weather data for match(es).
+
+	Examples:
+	   >>> data = find_city("New York")
+	   >>> data = find_city("Malaga,ES")
+	"""
+	data = wrap_get("find")(city, **params)
 	return data
 
-def get_current_station(station_id=None, **params):
-	"""Tested. Works fine."""
+def find_cities_by_geo_coord(geo_coord=None, count=10, **params):
+	"""Get current weather data for cities around `geo_coord`.
+
+	Note: Country code is not submitted in response!
+	
+	Args:
+	   geo_coord (tuple): geographic coordinates (latidude, longitude)
+	   count (int): number of cities to be returned,
+	      defaults to 10
+	   **params: units, lang
+	"""
+	params["cnt"] = count
+	data = wrap_get("find")(geo_coord, **params)
+	return DataBlock(data)
+
+def get_current_from_station(station_id=None, **params):
+	"""Get current weather data from station."""
 	data = wrap_get("station")(station_id, **params)
 	return data
 
-def get_current_station_box(**params):
-	pass
-
-def get_current_station_geo(geo_point=None, **params):
-	"""..."""
-	data = wrap_get("station/find")(geo_point, **params)
-	return data
-
-def get_current_box(**params):
-	"""Not tested."""
-	data = wrap_get("box/city")(**params)
-	return data
-
-# move up!
-def get_current_cycle(center_point=None, **params):
-	"""Tested. Works fine, but country code is not submitted!"""
-	data = wrap_get("find")(center_point, **params)
-	return data
+def find_stations_by_geo_coord(geo_coord=None, **params):
+	"""Same as `find cities_by_geo_coord` but for stations instead of cities."""
+	data = wrap_get("station/find")(geo_coord, **params)
+	return DataBlock(data)
 
 def get_forecast_hourly(city=None, **params):
-	"""Get 3h forecast data."""
+	"""Get 3h forecast data for `city`.
+
+	Args: same as for `get_current` 
+	"""
 	data = wrap_get("forecast")(city, **params)
-	return data
+	return DataBlock(data)
 
 def get_forecast_daily(city=None, **params):
-	"""Get daily forcast data."""
-	data = wrap_get("forecast/daily")(city, **params)
-	return data
+	"""Get daily forcast data for `city`.
 
-# does not work very well!?
+	Args: same as for `get_current`
+	"""
+	data = wrap_get("forecast/daily")(city, **params)
+	return DataBlock(data)
+
 def get_history(city=None, **params):
+	"""Get historical data for `city`.
+
+	Note: Tests (without API-KEY) did not work very well until now!
+
+	Args:
+	   **parmas: see OpenWeatherMap.org's API 2.5 for details,
+	      everything can be passed!
+	"""
 	data = wrap_get("history/city")(city, **params)
 	return data
-
-# ----------------------------------------------------------------
-
-@get_decorator("group")
-def get_current_group_test(ids, **params):
-	loc = ",".join([str(id) for id in ids])
-	params.update({"id": loc})
-	return params
-
-
-# Maybe decorator is nicer and more state of the art!?
-# But in this case "data parser function" should also be an argument!?
-# Furthermore, `functool.wrap` should be used to parse docstring!
-#@get_decorator("forecast")
-@decorate_get("forecast")
-def get_forecast_test(loc, **params):
-	"""This docstring should be wrapped!"""
-	params["loc"] = loc
-	return params
-
-@get_decorator("station/find")
-def get_stations(loc, **params):
-	#params.update({"lat": loc[0], "lon": loc[1]})
-	params["loc"] = loc
-	return params
-
-def search_city(city, **params):
-	params.update({"q": city})
-	search = wrap_get("find")
-	data = search(**params)
-	return data
-
-#==========================================
-
-def _parse_city_data(data, search, rdict):
-	"""Helper function for `get_cities_...`"""
-	data = [tuple(line.split("\t")) for line in data]
-	keys = data.pop(0)
-	if search:
-		data = [line for line in data if line[1].find(search) >= 0]
-	if rdict:
-		return [dict(zip(keys, line)) for line in data]
-	return (keys, data)
-
-def get_cities_from_file(filename, search=None, rdict=False):
-	"""Get cities from file."""
-	with file(filename) as f:
-		data = f.read().splitlines()
-	return _parse_city_data(data, search, rdict)
-	
- 
-def get_cities(search=None, rdict=False):
-	"""Get cities from url."""
-	data = utils.get_url_response(URL_CITY_LIST).splitlines()
-	return _parse_city_data(data, search, rdict)
-
-def save_cities(filename):
-	"""Get cities form url and save it to given `filename`."""
-	data = utils.get_url_response(URL_CITY_LIST).splitlines()
-	with file(filename, "w") as f:
-		f.write(data)
-
-def get_icon_url(icon_name):
-	"""Get icon url for given `icon_name`."""
-	return URL_ICON %icon_name
-
-# New: now docstring is wrapped as well
-def wrapper_get(func):
-	@functools.wraps(func)
-	def inner(*args, **kwargs):
-		url, parser = func(*args, **kwargs)
-		data = get_owm_data(url)
-		if parser:
-			data = parser(data)
-		return parser
-	return inner
-
-class wrapper(object):
-	"""Wrapper class for decorators in order to fetch owm data."""
-	def __init__(self, func):
-		self.func = func
-	
-	def __call__(self, *args, **kwargs):
-		"""my doc here."""
-		# rename data_class to data_wrapper because it can be a function as well
-		url, data_class = self.func(*args, **kwargs)
-		return data_class(get_owm_data(url))
-
-# there should be a method returning "icon-url"
-# maybe class should be renamed to weatherData? because forecast list also needs get icon_url,
-# or use a method outside class to parse icon into url!?
-class CurrentData(utils.nested_dict):
-	# not needed!
-	def get_icon_url(self):
-		icon = self("weather/[0]/icon")
-		return URL_ICON % icon
-
-	def _test(self, *keys):
-		"""Only for testing purposes, can be deleted!"""
-		if len(keys) == 1:
-			return self.get(keys[0])
-		return self.get_many(keys)
-
-# should use new class `NestedDictList`! obsolete, use new one!
-class ForecastData_obs(utils.nested_dict):
-	def iter_list(self, keys=None):
-		for line in self["list"]:
-			if keys:
-				line = utils.get_many(line, keys)
-			else:
-				line = utils.nested_dict(line)
-			yield line
-
-	def get_list(self, keys=None):
-		data = [line for line in self.iter_list(keys)]
-		return data
-
-# any class containing a list with weather data!?
-def split_data(data):
-	"""Extract list containing weather data from dictionary
-	   and return tuple in the form of `(meta_data, weather_data_list)`.
-	"""
-	list_ = utils.NestedDictList(data.pop("list"))
-	hangover = utils.NestedDict(data)
-	return (hangover, list_)
-
-class ForecastData(utils.NestedDict):
-	def iter_list(self, keys=None):
-		for line in self["list"]:
-			# should be current_weather_data class here, so that get_icon_url can be used!?
-			line = utils.NestedDict(line)
-			if keys:
-				line = line(keys)
-			yield line
-
-	# use "self.iter_list" method, because of memory usage!
-	def get_list(self, keys=None):
-		data = utils.NestedDictList(self["list"])
-		if keys:
-			data = data.select(keys)
-		return data
-
-class CurrentDataGroup(ForecastData):
-	pass
-
-# not used anymore, only needed, if Station class should get some extra methods!?
-class StationData(list):
-	def __init__(self, data):
-		list.__init__(self, [Station(line) for line in data])
-
-	# other method than __call__ should be used for this stuff!?
-	def __call__(self, keys):
-		return [station.get_many(keys) for station in self]
-
-class Station(utils.nested_dict):
-	pass
-
-
-#@wrapper_get
-def _get_current(location, units=UNITS, language=LANGUAGE):
-	"""Get current weather data for given `location`."""
-	if type(location) == int:
-		_url = URL_CURRENT_ID
-	elif type(location) == tuple:
-		pass
-	else:
-		_url = URL_CURRENT
-	url = _url %(location, units, language)
-	#return (url, utils.NestedDict)
-	return utils.NestedDict(get(url))
-
-def get_current_test(location, units=UNITS, language=LANGUAGE):
-	@_wrapper.TypeWrapperMore(location)
-	def get_url(*args):
-		return (URL_CURRENT, URL_CURRENT_ID)
-	url = get_url(units, language)
-	return url
-
-# NEW STYLE!
-def current(location, **params):
-	params.update({"loc": location})
-	@_wrapper.Get(BASE_URL+"weather")
-	def get_url():
-		return params
-	return utils.NestedDict(get(get_url()))
-
-get_current_data = get_current
-
-def forecast(location, **params):
-	params.update({"loc": location})
-	@_wrapper.Get(BASE_URL+"forecast")
-	def get_url():
-		return params
-	return split_data(get(get_url()))
-
-# Testing only
-def forecast_alternative(location, **params):
-	params.update({"loc": location})
-	wrapper = _wrapper._Get(BASE_URL+"forecast")
-	url = wrapper(params)
-	return split_data(get(url))
-
-def current_group(ids, **params):
-	locations = ",".join([str(id) for id in ids])
-	params.update({"id": locations})
-	@_wrapper.Get(BASE_URL+"group")
-	def get_url():
-		return params
-	return split_data(get(get_url()))
-
-@wrapper
-def get_current_data_group(ids, units="standard", language="en"):
-	url = URL_CURRENT_GROUP %(",".join([str(id) for id in ids]), units, language)
-	#return (url, utils.NestedDictList)
-	#return (url, CurrentDataGroup)
-	return (url, split_data)
-
-@wrapper
-def get_forecast_data(location, units="standard", language="en"):
-	url = URL_FORECAST %(location, units, language)
-	#return (url, ForecastData)
-	return (url, split_data)
-
-@wrapper
-def _get_stations(latidude, longitude, count=10):
-	url = URL_SEARCH_STATIONS %(latidude, longitude, count)
-	#return (url, StationData)
-	return (url, utils.NestedDictList)
 
