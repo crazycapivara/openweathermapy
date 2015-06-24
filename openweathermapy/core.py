@@ -5,29 +5,29 @@
 	Core module containing functions and classes to fetch and handle data from
 	*OpenWeatherMap.org*. It wraps API 2.5. Items of returned data (mostly nested
 	dictionaries) can be accessed in a simplified and flexible way:
-
+	
 	   # openweathermapy access
 	   >>> item = data("main.temp")
-	   
+	
 	   # equals
 	   >>> item = data["main"]["temp"]
-
+	
 	   # multiple items can be fetched at once by passing a list of keys
 	   >>> items = data(["main.temp", "wind.speed"])
-
+	
 	Base functions and classes to handle nested dictionaries are located
 	in `openweathermapy.utils`.
-
+	
 	For a complete list of `**params`, which can be passed to the functions
 	in this module, refer to API documentation on http://openweathermap.org.
 	They always depend on the request, but unsupported parameters
 	will (normally) not raise an error. Most common ones to be used are "units",
 	"lang" and (if needed) "APIKEY". So, it may be a good idea to pass them in
 	form of a settings dictionary:
-
+	
 	   >>> settings = {"units": "metric", "lang": "de"}
 	   >>> data = get_current("Kassel,de", **settings)
-
+	
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
@@ -164,7 +164,7 @@ def find_city(city, **params):
 	   >>> data = find_city("Malaga,ES")
 	"""
 	data = wrap_get("find")(city, **params)
-	return data
+	return DataBlock(data)
 
 def find_cities_by_geo_coord(geo_coord=None, count=10, **params):
 	"""Get current weather data for cities around `geo_coord`.
