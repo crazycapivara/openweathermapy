@@ -1,14 +1,14 @@
 # openweathermapy
-Python package to fetch weather data from *OpenWeatherMap.org*.
+Python package wrapping *OpenWeatherMap.org's* API 2.5.
 
-As *OpenWeatherMap.org* returns data mostly as nested dictionaries,
-*openweathermapy* allows browsing your data as you browse your filesystem:
+As *OpenWeatherMap.org* returns data mostly in the form of nested dictionaries,
+*openweathermapy* gives a simple API to access items in a comfortable way.
 ```Python
 # classic access
 item = data["main"]["temp"]
 
-# openweathermapy access (classic access is also possible)
-item = data("main/temp")
+# openweathermapy access
+item = data("main.temp")
 ```
 
 # Status
@@ -24,39 +24,39 @@ At the moment just copy *openweathermapy folder* to your python *site-packages f
 See TODO and CHANGELOG (not added yet).
 
 # Version
-0.1.0
+0.5.0
 
 # Usage
 ```Python
-import openweathermapy as owm
+import openweathermapy.core as owm
 
 # fetch current (weather) data
 location = "London,GB"
-data = owm.get_current_data(location, units="metric")
+data = owm.get_current(location, units="metric")
 
-# just access items the way you browse your filesystem
-print data("main/temp")
+# access items
+print(data("main.temp"))
 
 [OUT]:
 11.06
 
 # fetch multiple items at once
-keys = ["main/temp", "main/humidity", "wind/speed"]
-print data.get_many(keys)
+keys = ["main.temp", "main.humidity", "wind.speed"]
+print(data.get_many(keys))
 
 [OUT]:
 (11.06, 58, 6.2)
 
 # if you like one liners ...
-data = owm.get_current_data("Kassel,DE", units="metric").get_many(keys)
+data = owm.get_current("Kassel,DE", units="metric").get_many(keys)
 
 # fetch forecast data
 location = "Kassel,DE"
-data = owm.get_forecast_data(location, units="metric")
+data = owm.get_forecast_hourly(location, units="metric")
 
-keys = ["dt_txt", "main/temp", "weather/[0]/description"]
-for line in data.get_list(keys)
-	print line
+keys = ["dt_txt", "main.temp", "weather.[0].description"]
+for line in data(keys)
+	print(line)
 
 [OUT]:
 (u'2015-06-11 18:00:00', 13.54, u'few clouds')
@@ -70,35 +70,17 @@ for line in data.get_list(keys)
 (u'2015-06-12 18:00:00', 22.36, u'sky is clear')
 [...]
 
-# fetch stations by latidude and longitude
-stations = owm.get_stations(latitude, longitude, count=10)
-
-for station in stations:
-	print station(["station/name", "distance"])
-
-[OUT]:
-(u'DH1FR-2', 18.15)
-(u'ETHF', 23.729)
-(u'Lauterbach', 50.11)
-(u'EDVK', 52.481)
-(u'Rittershausen', 53.101)
-(u'DC5DM-1', 61.607)
-(u'Eissen', 64.655)
-(u'35625 Reiskirchen', 65.226)
-(u'DB0LEN-2', 66.077)
-(u'DH5DY-6', 67.692)
-
 # using config files in `json` format
    # config.json
    {
-	"default": ["dt_txt", "main/temp", "weather/[0]/description"],
-	"minimal": ["dt_txt", "main/temp"]
+	"default": ["dt_txt", "main.temp", "weather.[0].description"],
+	"minimal": ["dt_txt", "main.temp"]
    }
 
 from openweathermapy import utils
 
 keys = utils.load_config("config.json")["default"]
-selection = forecast_data.get_list(keys)
+selection = data(keys)
  
 # to be continued ...
 ```
