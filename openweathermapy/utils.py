@@ -104,19 +104,26 @@ class NestedDict(dict):
 		return tuple([self.get(key) for key in keys])
 		#return get_many(self, keys)
 
+	def get_dict(self, keys, split_keys=True):
+		"""Same as `get_many`, but return type is a dictionary."""
+		items = self.get_many(keys)
+		if split_keys:
+			keys = [key.split(KEY_SEPARATOR)[-1] for key in keys]
+		return dict(zip(keys, items))
+
 # for old compatibility reasons!?
 class nested_dict(NestedDict):
 	pass
 
 class NestedDictList(list):
 	"""List of (nested) dictionaries (with same keys).
-
+	
 	Example:
 	   >>> data = NestedDictList([
 	          {"name": "Peter", "nick": "p", "more": {"phone": 888}},
 	          {"name": "Jane",  "nick": "j", "more": {"phone": 777}}
 	       ])
-
+	
 	   # Extract nick and phone
 	   >>> data.select(["nick", "more.phone"])
 	   [("p", 888), ("j", 777)]	

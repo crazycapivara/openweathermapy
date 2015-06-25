@@ -46,8 +46,8 @@ KASSEL_LATITUDE = 51.32
 KASSEL_LONGITUDE = 9.5
 KASSEL_LOC = (KASSEL_LATITUDE, KASSEL_LONGITUDE)
 
-BASE_URL="http://api.openweathermap.org/data/2.5/"
-URL_ICON = "http://openweathermap.org/img/w/%s.png" 
+BASE_URL = "http://api.openweathermap.org/data/2.5/"
+ICON_URL = "http://openweathermap.org/img/w/%s.png" 
 
 def get(url, **params):
 	"""Return data as (nested) dictionary for `url` request."""
@@ -56,16 +56,22 @@ def get(url, **params):
 	return json.loads(data.decode("utf-8"))
 
 def wrap_get(appendix, settings=None):
-	"""Wrap `get` function by setting url to `BASE_URL+appendix`.
+	"""Wrap `get` by setting url to `BASE_URL+appendix`.
+	Optionally a dict with settings can be given.
+	
+	The wrapped function accepts a list of parameters (**params),
+	depending on the query. Moreover, `loc` can be passed to
+	returned function as optional argument, where `loc`
+	can either be a (city) name, a (city) id or geographic coordinates.
 
-	Moreover, as optinal argument `loc` can be passed to
-	wrapped function, where loc can either be a (city) name, a (city) id
-	or geographic coordinates.
+	Examples:
+	   >>> f = wrap_get("weather", dict(units="metric"))
+	   >>> data = f("Kassel,de")
+	   >>> data_de = f("Kassel,de", lang="de")
 	"""
 	url = BASE_URL+appendix
 	def call(loc=None, **params):
 		if loc:
-			params["loc"] = loc
 			if type(loc) == int:
 				params["id"] = loc
 			elif type(loc) == tuple:
@@ -79,9 +85,9 @@ def wrap_get(appendix, settings=None):
 	return call
 
 class Decorator(object):
-	"""Decorator for `get`.
+	"""Decorator based on :func: `wrap_get`.
 
-	Gives more or less same functionality as `get_wrap`,
+	Gives more or less same functionality as :func: `wrap_get`,
 	except that `data_type` can be passed and furthermore,
 	it is *real* decorator! 
 	"""
@@ -102,10 +108,10 @@ class Decorator(object):
 def get_icon_url(weather_data):
 	"""Get icon url from `weather_data`."""
 	icon = weather_data["weather"][0]["icon"]
-	return URL_ICON %icon
+	return ICON_URL %icon
 
 class DataBlock(utils.NestedDictList):
-	"""Class for all OWM responses containing list with weather data."""
+	"""Class for all OWM responses containing a list with weather data."""
 	def __init__(self, data):
 		utils.NestedDictList.__init__(self, data.pop("list"))
 		self.info = utils.NestedDict(data)
@@ -122,18 +128,18 @@ def get_current(city=None, **params):
 	   city (str, int or tuple): either city name, city id
 	      or geographic coordinates (latidude, longitude)
 	   **params: units, lang[, zip]
-
+	
 	Examples:
 	   # get data by city name and country code
 	   >>> data = get_current("Kassel,de")
-
+	
 	   # get data by city id and set language to german (de)
 	   >>> data = get_current(2892518, lang="de")
-
+	
 	   # get data by latitude and longitude and return temperatures in Celcius
 	   >>> location = (51.32, 9.5)
 	   >>> data = get_current(location, units="metric")
-
+	
 	   # optinal: skip city argument and get data by zip code
 	   >>> data = get_current(zip="34128,de") 
 	"""
@@ -142,11 +148,11 @@ def get_current(city=None, **params):
 
 def get_current_for_group(city_ids, **params):
 	"""Get current weather data for multiple cities.
-
+	
 	Args:
 	   city_ids (tuple): list of city ids,
 	   **params: units, lang
-
+	
 	Example:
 	   # get data for 'Malaga,ES', 'Kassel,DE', 'New York,US'
 	   >>> data = get_current_group((2892518, 2514256, 5128581), units="metric")
@@ -158,7 +164,7 @@ def get_current_for_group(city_ids, **params):
 
 def find_city(city, **params):
 	"""Search for `city` and return current weather data for match(es).
-
+	
 	Examples:
 	   >>> data = find_city("New York")
 	   >>> data = find_city("Malaga,ES")
@@ -168,7 +174,7 @@ def find_city(city, **params):
 
 def find_cities_by_geo_coord(geo_coord=None, count=10, **params):
 	"""Get current weather data for cities around `geo_coord`.
-
+	
 	Note: Country code is not submitted in response!
 	
 	Args:
@@ -193,7 +199,7 @@ def find_stations_by_geo_coord(geo_coord=None, **params):
 
 def get_forecast_hourly(city=None, **params):
 	"""Get 3h forecast data for `city`.
-
+	
 	Args: same as for `get_current` 
 	"""
 	data = wrap_get("forecast")(city, **params)
@@ -201,7 +207,7 @@ def get_forecast_hourly(city=None, **params):
 
 def get_forecast_daily(city=None, **params):
 	"""Get daily forcast data for `city`.
-
+	
 	Args: same as for `get_current`
 	"""
 	data = wrap_get("forecast/daily")(city, **params)
@@ -209,9 +215,9 @@ def get_forecast_daily(city=None, **params):
 
 def get_history(city=None, **params):
 	"""Get historical data for `city`.
-
+	
 	Note: Tests (without API-KEY) did not work very well until now!
-
+	
 	Args:
 	   **parmas: see OpenWeatherMap.org's API 2.5 for details,
 	      everything can be passed!

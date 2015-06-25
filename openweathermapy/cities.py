@@ -51,7 +51,7 @@ class CityData(object):
 		data = [line for line in self.data if line[1].find(name) >= 0 and line[-1].find(country.upper()) >= 0]
 		return data
 
-	def get_dict(self, city):
+	def get_dicts(self, city):
 		"""Same as `get`, but matches are returned as dictionaries."""
 		data = self.get(city)
 		data_dict = [dict(zip(self.keys, line)) for line in data]
