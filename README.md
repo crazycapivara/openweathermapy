@@ -22,14 +22,17 @@ Development (Alpha)
 
 # Usage
 All parameters defined in *OpenWeatherMap's* API documentation can be passed to the functions
-in *openweathermapy* in the form of keyword arguments (``**params``).
-The query string always depends on the request (API call), but unsupported parameters will (normally) not raise an error. Most common ones to be used are ``units``, ``lang`` and (if needed) ``APIKEY``. So, it may be a good idea to pass them
-as a settings dictionary:
+in *openweathermapy* as keyword arguments ``**params``.
+The query string always depends on the request (API call), but unsupported parameters will (normally) not raise an error. Most common ones to be used are ``units``, ``lang`` and (if needed) ``APPID``. So, it may be a good idea to pass them
+in the form of a settings dictionary:
 
 ```Python
 >>> import openweathermapy.core as owm
 >>> settings = {"units": "metric", "lang": "de"}
 >>> data = owm.get_current("Kassel,DE", **settings)
+
+# settings containing APIKEY
+>>> settings = {"APPID": 1111111111, "units": "metric"}
 ```
 
 **Current weather data**
