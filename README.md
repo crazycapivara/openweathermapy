@@ -38,6 +38,9 @@ in the form of a settings dictionary:
 **Current weather data**
 
 **City** can be given as *name*, *id*, or *geographic coordinates*.
+If you want to stay as close as possible to the original API, you can also skip the
+first argument and use the parameters ``q``, ``id``, ``lat`` and ``lon`` or ``zip`` instead.
+For details see *OpenWeatherMap's* API documention.
 
 ```Python
 # get data by city name and country code
