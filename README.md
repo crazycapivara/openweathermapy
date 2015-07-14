@@ -39,7 +39,7 @@ Development (Alpha)
 >>> data("main.temp")
 11.06
 
-# fetch multiple items at once
+# access multiple items at once
 >>> keys = ["main.temp", "main.humidity", "wind.speed"]
 >>> data.get_many(keys)
 (11.06, 58, 6.2)
@@ -51,7 +51,7 @@ Development (Alpha)
 
 # get data for 5 cities around geographic coordinates
 >>> location = (51.32, 9.5)
->>> data = find_city_by_geo_coord(location, 5)
+>>> data = find_cities_by_geo_coord(location, 5)
 
 # get data from station
 >>> data = owm.get_current_from_station(4926)
@@ -72,7 +72,7 @@ u'message': 0.0185, u'cod': u'200', u'cnt': 7}
 
 >>> selection = data.select(["dt", "temp.min", "temp.max"])
 >>> for line in selection:
-...	line 
+...    line 
 ...
 (1436871600, 15.58, 20.98)
 (1436958000, 13.18, 22.52)
@@ -88,7 +88,7 @@ data = owm.get_forecast_daily("Kassel,DE", 14)
 
 **Historical data**
 ```Python
-# get historical data from city
+# get historical data for city
 >>> data = get_history("Kassel,DE")
 
 # get historical data from station
