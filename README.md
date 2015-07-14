@@ -133,7 +133,17 @@ class ``GetDecorator``. Both are more or less the same. As first argument the *a
 to be given. Optionally a dictionary with parameters and a data converter can be passed. 
 
 ```Python
+# show base url
+>>> owm.BASE_URL
+'http://api.openweathermap.org/data/2.5/'
+
 # create a function to get current weather data and return temperatures in Celsius
+# therefore, you need to add "weather" to the base url and set "units" to "metric"
 >>> f = wrap_get("weather", dict(units="metric"))
 >>> data = f("London,UK")
+>>> data_de = f(zip="34128,DE", lang="DE")
 ```
+
+In this case the wrapped function sets its url to *http://api.openweathermap.org/data/2.5/weather?units=metric*.
+All keyword arguments passed to the created function are added to the query string. Optionally as only argument
+you can pass a *city name*, a * city/station id* or *geograpic coordinates* as shown in examples above.
