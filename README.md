@@ -2,13 +2,16 @@
 Python package wrapping *OpenWeatherMap.org's* API 2.5.
 
 As *OpenWeatherMap.org* returns data mostly in the form of nested dictionaries,
-*openweathermapy* gives a simple API to access items in a comfortable way.
+*openweathermapy* gives a simple API to access items in a comfortable way:
 ```Python
 # classic access
 item = data["main"]["temp"]
 
 # openweathermapy access
 item = data("main.temp")
+
+# access multiple items at once
+>>> items = data(["main.temp", "wind.speed"])
 ```
 
 # Status
@@ -18,24 +21,31 @@ Development (Alpha)
 0.6.0
 
 # Usage
+All parameters defined in *OpenWeatherMap's* API documentation can be passed to the functions
+in *openweathermapy* in the form of keyword arguments (``**params``).
+The query string always depends on the request (API call), but unsupported parameters will (normally) not raise an error. Most common ones to be used are ``units``, ``lang`` and (if needed) ``APIKEY``. So, it may be a good idea to pass them
+as a settings dictionary:
+
 ```Python
 >>> import openweathermapy.core as owm
+>>> settings = {"units": "metric", "lang": "de"}
+>>> data = owm.get_current("Kassel,DE", **settings)
 ```
 
 **Current weather data**
 ```Python
 # get data by city name and country code
->>> data = get_current("Kassel,DE")
+>>> data = owm.get_current("Kassel,DE")
 	
 # get data by city id and set language to german (DE)
->>> data = get_current(2892518, lang="DE")
+>>> data = owm.get_current(2892518, lang="DE")
 	
 # get data by latitude and longitude and return temperatures in Celcius
 >>> location = (51.32, 9.5)
->>> data = get_current(location, units="metric")
+>>> data = owm.get_current(location, units="metric")
 	
 # optional: skip city argument and get data by zip code
->>> data = get_current(zip="34128,DE") 
+>>> data = owm.get_current(zip="34128,DE") 
 
 # access single item
 >>> data("main.temp")
@@ -48,12 +58,12 @@ Development (Alpha)
 
 # get data for 'Malaga,ES', 'Kassel,DE', 'New York,US'
 >>> city_ids = (2892518, 2514256, 5128581)
->>> data = get_current_for_group(city_ids, units="metric", lang="DE")
+>>> data = owm.get_current_for_group(city_ids, units="metric", lang="DE")
 >>> data_malaga = data[0]
 
 # get data for 5 cities around geographic coordinates
 >>> location = (51.32, 9.5)
->>> data = find_cities_by_geo_coord(location, 5)
+>>> data = owm.find_cities_by_geo_coord(location, 5)
 
 # get data from station
 >>> data = owm.get_current_from_station(4926)
@@ -68,7 +78,7 @@ Development (Alpha)
 The *city* argument can be given as *name*, *id*, *geographic coordinates* or *zip code* as shown
 in the examples above.  
 ```Python
-# get 3h forcast data
+# get 3h forecast data
 >>> data = owm.get_forecast_hourly("Kassel,DE")
 >>> data.meta
 {u'city': {u'country': u'DE', u'population': 0, u'id': 2892518,
@@ -94,8 +104,8 @@ data = owm.get_forecast_daily("Kassel,DE", 14)
 **Historical data**
 ```Python
 # get historical data for city
->>> data = get_history("Kassel,DE")
+>>> data = owm.get_history("Kassel,DE")
 
 # get historical data from station
->>> data = get_history_from_station(4926)
+>>> data = owm.get_history_from_station(4926)
 ```
