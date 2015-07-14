@@ -64,6 +64,7 @@ Development (Alpha)
 ```
 
 **Forecast data**
+
 The *city* argument can be given as *name*, *id*, *geographic coordinates* or *zip code* as shown
 in the examples above.  
 ```Python
