@@ -12,75 +12,51 @@ item = data("main.temp")
 ```
 
 # Status
-Development
-
-# Installation
-At the moment just copy *openweathermapy folder* to your python *site-packages folder* or into your *project folder*.
-
-*setup.py* will be added ... soon
-
-# Notes
-
-See TODO and CHANGELOG (not added yet).
+Development (Alpha)
 
 # Version
-0.5.0
+0.6.0
 
 # Usage
+**Current weather data**
 ```Python
-import openweathermapy.core as owm
+>>> import openweathermapy.core as owm
 
-# fetch current (weather) data
-location = "London,GB"
-data = owm.get_current(location, units="metric")
+# get data by city name and country code
+>>> data = get_current("Kassel,DE")
+	
+# get data by city id and set language to german (DE)
+>>> data = get_current(2892518, lang="DE")
+	
+# get data by latitude and longitude and return temperatures in Celcius
+>>> location = (51.32, 9.5)
+>>> data = get_current(location, units="metric")
+	
+# optional: skip city argument and get data by zip code
+>>> data = get_current(zip="34128,DE") 
 
-# access items
-print(data("main.temp"))
-
-[OUT]:
+# access single item
+>>> data("main.temp")
 11.06
 
 # fetch multiple items at once
-keys = ["main.temp", "main.humidity", "wind.speed"]
-print(data.get_many(keys))
-
-[OUT]:
+>>> keys = ["main.temp", "main.humidity", "wind.speed"]
+>>> data.get_many(keys)
 (11.06, 58, 6.2)
 
-# if you like one liners ...
-data = owm.get_current("Kassel,DE", units="metric").get_many(keys)
+# get data for 'Malaga,ES', 'Kassel,DE', 'New York,US'
+>>> city_ids = (2892518, 2514256, 5128581)
+>>> data = get_current_for_group(city_ids, units="metric", lang="DE")
+>>> data_malaga = data[0]
 
-# fetch forecast data
-location = "Kassel,DE"
-data = owm.get_forecast_hourly(location, units="metric")
+# get data for 5 cities around geographic coordinates
+>>> location = (51.32, 9.5)
+>>> data = find_city_by_geo_coord(location, 5)
 
-keys = ["dt_txt", "main.temp", "weather.[0].description"]
-for line in data(keys)
-	print(line)
+# get data from station
+>>> data = owm.get_current_from_station(4926)
 
-[OUT]:
-(u'2015-06-11 18:00:00', 13.54, u'few clouds')
-(u'2015-06-11 21:00:00', 10.21, u'sky is clear')
-(u'2015-06-12 00:00:00', 8.65, u'few clouds')
-(u'2015-06-12 03:00:00', 9.67, u'broken clouds')
-(u'2015-06-12 06:00:00', 14.41, u'light rain')
-(u'2015-06-12 09:00:00', 18.44, u'light rain')
-(u'2015-06-12 12:00:00', 21.82, u'sky is clear')
-(u'2015-06-12 15:00:00', 23.42, u'sky is clear')
-(u'2015-06-12 18:00:00', 22.36, u'sky is clear')
-[...]
-
-# using config files in `json` format
-   # config.json
-   {
-	"default": ["dt_txt", "main.temp", "weather.[0].description"],
-	"minimal": ["dt_txt", "main.temp"]
-   }
-
-from openweathermapy import utils
-
-keys = utils.load_config("config.json")["default"]
-selection = data(keys)
- 
-# to be continued ...
+# find stations (and fetch data) by geographic coordinates
+>>> location = (51.32, 9.5)
+>>> data = owm.find_stations_by_geo_coord(location)
 ```
