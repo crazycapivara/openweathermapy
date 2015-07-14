@@ -28,7 +28,7 @@ in the form of a settings dictionary:
 
 ```Python
 >>> import openweathermapy.core as owm
->>> settings = {"units": "metric", "lang": "de"}
+>>> settings = {"units": "metric", "lang": "DE"}
 >>> data = owm.get_current("Kassel,DE", **settings)
 
 # settings containing APIKEY
@@ -78,11 +78,11 @@ in the form of a settings dictionary:
 
 **Forecast data**
 
-The *city* argument can be given as *name*, *id*, *geographic coordinates* or *zip code* as shown
+The argument ``city`` can be given as *name*, *id*, *geographic coordinates* or *zip code* as shown
 in the examples above.  
 ```Python
 # get 3h forecast data
->>> data = owm.get_forecast_hourly("Kassel,DE")
+>>> data = owm.get_forecast_hourly("Kassel,DE", lang="DE")
 >>> data.meta
 {u'city': {u'country': u'DE', u'population': 0, u'id': 2892518,
 u'coord': {u'lat': 51.316669, u'lon': 9.5}, u'name': u'Kassel'},
@@ -105,6 +105,10 @@ data = owm.get_forecast_daily("Kassel,DE", 14)
 ```
 
 **Historical data**
+
+For a complete list of parameters as ``start``, ``end`` etc., which can be passed, please refer
+to *OpenWeatherMap's* API documention. 
+
 ```Python
 # get historical data for city
 >>> data = owm.get_history("Kassel,DE")
