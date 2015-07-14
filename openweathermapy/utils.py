@@ -2,16 +2,15 @@
 """
 	openweathermapy.utils
 	~~~~~~~~~~~~~~~~~~~~~
-	Utility module containing functions and classes to handle nested dictionaries
+	The utility module contains functions and classes to handle nested dictionaries
 	(as returned by *OpenWeatherMap.org*) in a simplified and flexible way.
-
-	Furthermore, it includes functions to load settings from config file in
-	 `json` format and to retrieve data for a given url request.
-
+	
+	Furthermore, it includes functions to load settings from config files in
+	 `json` format and to retrieve data for given url requests.
+	
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
-from __future__ import print_function
 import json
 # Python3 compatibility (maybe `six` package should be used!?)
 try:
@@ -26,7 +25,7 @@ __license__ = "GPLv3"
 KEY_SEPARATOR = "."
 
 def get_url_response(url, **params):
-	"""Get (raw) data for given `url` and **params."""
+	"""Get (raw) data for given ``url``."""
 	if params:
 		url = url+"?"+urlencode(params)
 	response = urlopen(url)
@@ -41,56 +40,63 @@ def load_config(filename):
 	# Decoding: Python3 compatibility
 	return json.loads(data.decode("utf-8"))
 
-def __parse_key(key):
-	"""Helper function for `get_item`."""
-	if key[0] == "[":
-		key = int(key.strip("[]"))
-	return key
-
 def get_item(data, key):
 	"""Get item from nested dictionary in a simplified way.
-
+	
 	Args:
 	   data (dict): nested dictionary
 	   key (str): request string in the form of <key><separator><key>...
-
+	
 	Examples:
 	   # KEY_SEPARATOR = "."
-	   >>> data = {"a": 2, "b": 4, "c": {"d": 6, "e": 8}}
-	   >>> data("c.d")
+	   >>> data = {"a": 2, "b": {"c": 6, "d": 8}}
+	   >>> get_item(data, "b.c")
 	   6
 	   # equals
 	   >>> data["c"]["d"]
 	   6
-
+	
 	   >>> data = {"a": 2, "b": [4, 6]}
-	   >>> data("b.[0]")
+	   >>> get_item(data, "b.[0]")
 	   4
 	   # equals
 	   >>> data["b"][0]
 	   4
 	"""
+	def parse_key(key):
+		if key[0] == "[":
+			key = int(key.strip("[]"))
+		return key
 	keys = key.split(KEY_SEPARATOR)
-	item = data[__parse_key(keys[0])]
+	item = data[parse_key(keys[0])]
 	if len(keys) > 1:
 		for key in keys[1:]:
-			item = item[__parse_key(key)]
+			item = item[parse_key(key)]
 	return item
 
 def get_many(data, keys):
 	"""Get multiple items from nested dictionary.
-
-	For details see `get_item`.
+	
+	For details see function ``get_item``.
 	"""
 	items = [get_item(data, key) for key in keys]
 	return tuple(items)
 
 class NestedDict(dict):
 	"""Nested dictionary, which is accessible in a simplified way.
-
-	For details see `get_item`.
+	
+	Example:
+	   # KEY_SEPARATOR = "."
+	   >>> data = NestedDict({"a": 2, "b": {"c": 4, "d": 6}})
+	   >>> data("b.d")
+	   6
+	   >>> data(["a", "b.c"])
+	   (2, 4)
+	
+	For details see function ``get_item``.
 	"""
 	def __call__(self, key):
+		"""Call method ``get`` or ``get_many`` depending on type of ``key``."""
 		if type(key) == list:
 			return self.get_many(key)
 		return self.get(key)
@@ -105,15 +111,11 @@ class NestedDict(dict):
 		#return get_many(self, keys)
 
 	def get_dict(self, keys, split_keys=True):
-		"""Same as `get_many`, but return type is a dictionary."""
+		"""Same as method ``get_many``, but return type is a dictionary."""
 		items = self.get_many(keys)
 		if split_keys:
 			keys = [key.split(KEY_SEPARATOR)[-1] for key in keys]
 		return dict(zip(keys, items))
-
-# for old compatibility reasons!?
-class nested_dict(NestedDict):
-	pass
 
 class NestedDictList(list):
 	"""List of (nested) dictionaries (with same keys).
@@ -133,6 +135,7 @@ class NestedDictList(list):
 		list.__init__(self, [NestedDict(line) for line in data])
 
 	def __call__(self, keys):
+		"""Alias for method ``select``."""
 		return self.select(keys)
 
 	def select(self, keys):
