@@ -36,6 +36,9 @@ in the form of a settings dictionary:
 ```
 
 **Current weather data**
+
+The (optional first) argument ``city`` can be given as *name*, *id*, or *geographic coordinates*.
+
 ```Python
 # get data by city name and country code
 >>> data = owm.get_current("Kassel,DE")
@@ -78,8 +81,7 @@ in the form of a settings dictionary:
 
 **Forecast data**
 
-The argument ``city`` can be given as *name*, *id*, *geographic coordinates* or *zip code* as shown
-in the examples above.  
+The argument ``city`` can be given as shown in the examples above.  
 ```Python
 # get 3h forecast data
 >>> data = owm.get_forecast_hourly("Kassel,DE", lang="DE")
