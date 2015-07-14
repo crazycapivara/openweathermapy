@@ -18,10 +18,12 @@ Development (Alpha)
 0.6.0
 
 # Usage
-**Current weather data**
 ```Python
 >>> import openweathermapy.core as owm
+```
 
+**Current weather data**
+```Python
 # get data by city name and country code
 >>> data = get_current("Kassel,DE")
 	
@@ -62,8 +64,10 @@ Development (Alpha)
 ```
 
 **Forecast data**
+The *city* argument can be given as *name*, *id*, *geographic coordinates* or *zip code* as shown
+in the examples above.  
 ```Python
-# get ...
+# get 3h forcast data
 >>> data = owm.get_forecast_hourly("Kassel,DE")
 >>> data.meta
 {u'city': {u'country': u'DE', u'population': 0, u'id': 2892518,
