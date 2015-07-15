@@ -35,6 +35,7 @@
 """
 import functools
 import json
+from datetime import datetime
 from . import utils
 
 __author__ = "Stefan Kuethe"
@@ -50,6 +51,11 @@ KASSEL_LOC = (KASSEL_LATITUDE, KASSEL_LONGITUDE)
 
 BASE_URL = "http://api.openweathermap.org/data/2.5/"
 ICON_URL = "http://openweathermap.org/img/w/%s.png" 
+
+CONV = {
+	"dt": lambda timestamp: str(datetime.fromtimestamp(timestamp)),
+	"weather.[0].icon": lambda icon: ICON_URL % icon
+}
 
 def get(url, **params):
 	"""Return data as (nested) dictionary for ``url`` request."""
@@ -113,23 +119,16 @@ class GetDecorator(object):
 			return data
 		return call
 
-# Not very useful, use constant ``ICON_URL`` instead
-def get_icon_url(weather_data):
-	"""Get icon url from ``weather_data``."""
-	icon = weather_data["weather"][0]["icon"]
-	return ICON_URL %icon
+class _DataPoint(utils.NestedDict):
+	pass
+
+DataPoint = utils.NestedDict
 
 class DataBlock(utils.NestedDictList):
-	"""Class for all OWM responses containing a list with weather data."""
+	"""Class for all owm responses containing a list with weather data."""
 	def __init__(self, data):
 		utils.NestedDictList.__init__(self, data.pop("list"))
 		self.meta = utils.NestedDict(data)
-
-# Not needed, kill in future versions
-class WeatherData(utils.NestedDict):
-	def get_icon_url(self):
-		#return self["weather"][0]["icon"]
-		return get_icon_url(self)
 
 def get_current(city=None, **params):
 	"""Get current weather data for ``city``.
@@ -154,7 +153,7 @@ def get_current(city=None, **params):
 	   >>> data = get_current(zip="34128,DE") 
 	"""
 	data = wrap_get("weather")(city, **params)
-	return WeatherData(data)
+	return DataPoint(data)
 
 def get_current_for_group(city_ids, **params):
 	"""Get current weather data for multiple cities.
@@ -202,7 +201,7 @@ def find_cities_by_geo_coord(geo_coord=None, count=10, **params):
 def get_current_from_station(station_id=None, **params):
 	"""Get current weather data from station."""
 	data = wrap_get("station")(station_id, **params)
-	return data
+	return DataPoint(data)
 
 # should get a ``count`` argument as well!
 def find_stations_by_geo_coord(geo_coord=None, count=10, **params):
