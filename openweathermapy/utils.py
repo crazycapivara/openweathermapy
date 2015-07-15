@@ -99,23 +99,39 @@ class NestedDict(dict):
 		"""Call method ``get`` or ``get_many`` depending on type of ``key``."""
 		if type(key) == list:
 			return self.get_many(key)
-		return self.get(key)
+		return self.get_item(key)
 
-	def get(self, key):
+	# Obsolete!
+	def _get_item(self, key):
 		"""Get single item."""
 		return get_item(self, key)
 
-	def get_many(self, keys):
+	# Obsolete!
+	def _get_many(self, keys):
 		"""Get multiple items."""
 		return tuple([self.get(key) for key in keys])
-		#return get_many(self, keys)
 
-	def get_dict(self, keys, split_keys=True):
+	# add converters as well!
+	def get_dict(self, keys, split_keys=False):
 		"""Same as method ``get_many``, but return type is a dictionary."""
 		items = self.get_many(keys)
 		if split_keys:
 			keys = [key.split(KEY_SEPARATOR)[-1] for key in keys]
 		return dict(zip(keys, items))
+
+	# Testing: parameter converters added
+	def get_item(self, key, converters=None):
+		"""Get single item."""
+		item = get_item(self, key)
+		if converters:
+			conv = converters.get(key)
+			if conv:
+				item = conv(item)
+		return item
+
+	def get_many(self, keys, converters=None):
+		"""Get multiple items."""
+		return tuple([self.get_item(key, converters) for key in keys])
 
 class NestedDictList(list):
 	"""List of (nested) dictionaries (with same keys).
@@ -138,7 +154,9 @@ class NestedDictList(list):
 		"""Alias for method ``select``."""
 		return self.select(keys)
 
-	def select(self, keys):
-		selection = [line.get_many(keys) for line in self]
+	def select(self, keys, converters=None):
+		selection = [line.get_many(keys, converters) for line in self]
 		return selection
 
+	def select_dict(self, keys, *args, **kwargs):
+		pass
