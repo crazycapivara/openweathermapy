@@ -1,1 +1,1 @@
-from openweathermapy import *
+from .core import *
