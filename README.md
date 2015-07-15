@@ -1,7 +1,7 @@
 # openweathermapy
 Python package wrapping *OpenWeatherMap.org's* API 2.5.
 
-As *OpenWeatherMap.org* returns data mostly in the form of nested dictionaries,
+As *OpenWeatherMap* returns data mostly in the form of nested dictionaries,
 *openweathermapy* gives a simple API to access items in a comfortable way:
 ```Python
 # classic access
@@ -90,11 +90,18 @@ For details see *OpenWeatherMap's* API documention.
 # get 3h forecast data
 >>> data = owm.get_forecast_hourly("Kassel,DE", lang="DE")
 
+# get daily forecast data for 7 days
+>>> data = owm.get_forecast_daily("Kassel,DE", 7)
+
 # show meta data
 >>> data.meta
 {u'city': {u'country': u'DE', u'population': 0, u'id': 2892518,
 u'coord': {u'lat': 51.316669, u'lon': 9.5}, u'name': u'Kassel'},
 u'message': 0.0185, u'cod': u'200', u'cnt': 7}
+
+# get coordinates and id
+>>> data.meta(["city.coord", "city.id"])
+({u'lat': 51.316669, u'lon': 9.5}, 2892518)
 
 # select columns
 >>> selection = data.select(["dt", "temp.min", "temp.max"])
@@ -108,9 +115,6 @@ u'message': 0.0185, u'cod': u'200', u'cnt': 7}
 (1437217200, 17.49, 26.43)
 (1437303600, 12.79, 20.33)
 (1437390000, 11.69, 19.93)
-
-# get daily forecast data for 14 days
-data = owm.get_forecast_daily("Kassel,DE", 14)
 ```
 
 **Historical data**
@@ -130,16 +134,19 @@ to *OpenWeatherMap's* API documention.
 
 You can customize or extend the lib to your needs by using the wrapper function ``wrap_get`` or the decorator
 class ``GetDecorator``. Both are more or less the same. As first argument the *appendix* to the *base url* needs
-to be given. Optionally a dictionary with parameters and a data converter can be passed. 
+to be given. Optionally a *dictionary with parameters* and a *data converter* can be passed. 
 
 ```Python
 # show base url
 >>> owm.BASE_URL
 'http://api.openweathermap.org/data/2.5/'
 
-# create a function to get current weather data and return temperatures in Celsius
-# therefore, you need to add "weather" to the base url and set "units" to "metric"
-# this will set url to 'http://api.openweathermap.org/data/2.5/weather?units=metric'
+# base url for fetching current weather data
+>>> appendix = "weather"
+>>> owm.BASE_URL+appendix
+'http://api.openweathermap.org/data/2.5/weather'
+
+# create a function to get current weather data and return temperatures in Celsius (units="metric") 
 >>> f = wrap_get("weather", dict(units="metric"))
 >>> data = f("London,UK")
 >>> data_de = f(zip="34128,DE", lang="DE")
