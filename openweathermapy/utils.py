@@ -50,17 +50,13 @@ def get_item(data, key):
 	Examples:
 	   # KEY_SEPARATOR = "."
 	   >>> data = {"a": 2, "b": {"c": 6, "d": 8}}
+	   # get data["c"]["d"]
 	   >>> get_item(data, "b.c")
 	   6
-	   # equals
-	   >>> data["c"]["d"]
-	   6
-	
+
 	   >>> data = {"a": 2, "b": [4, 6]}
+	   # get data["b"][0]
 	   >>> get_item(data, "b.[0]")
-	   4
-	   # equals
-	   >>> data["b"][0]
 	   4
 	"""
 	def parse_key(key):
@@ -95,43 +91,33 @@ class NestedDict(dict):
 	
 	For details see function ``get_item``.
 	"""
-	def __call__(self, key):
+	def __call__(self, *keys):
 		"""Call method ``get`` or ``get_many`` depending on type of ``key``."""
-		if type(key) == list:
-			return self.get_many(key)
-		return self.get_item(key)
+		if len(keys) == 1:
+			return self.get_item(keys[0])
+		return self.get_many(keys)
 
-	# Obsolete!
-	def _get_item(self, key):
-		"""Get single item."""
+	def get_item(self, key):
+		"""Get single item for given ``key``."""
 		return get_item(self, key)
 
-	# Obsolete!
-	def _get_many(self, keys):
-		"""Get multiple items."""
-		return tuple([self.get(key) for key in keys])
+	def get_many(self, keys, converters=None):
+		"""Get multiple items for given ``keys``."""
+		def _get(key):
+			item = self.get_item(key)
+			if converters:
+				conv = converters.get(key)
+				if conv:
+					item = conv(item)
+			return item 
+		return tuple([_get(key) for key in keys])
 
-	# add converters as well!
-	def get_dict(self, keys, split_keys=False):
+	def get_dict(self, keys, split_keys=False, converters=None):
 		"""Same as method ``get_many``, but return type is a dictionary."""
-		items = self.get_many(keys)
+		items = self.get_many(keys, converters)
 		if split_keys:
 			keys = [key.split(KEY_SEPARATOR)[-1] for key in keys]
 		return dict(zip(keys, items))
-
-	# Testing: parameter converters added
-	def get_item(self, key, converters=None):
-		"""Get single item."""
-		item = get_item(self, key)
-		if converters:
-			conv = converters.get(key)
-			if conv:
-				item = conv(item)
-		return item
-
-	def get_many(self, keys, converters=None):
-		"""Get multiple items."""
-		return tuple([self.get_item(key, converters) for key in keys])
 
 class NestedDictList(list):
 	"""List of (nested) dictionaries (with same keys).
@@ -159,4 +145,7 @@ class NestedDictList(list):
 		return selection
 
 	def select_dict(self, keys, *args, **kwargs):
-		pass
+		"""*args and **kwargs: see ``NestedDict.get_item``."""
+		selection = [line.get_dict(keys, *args, **kwargs) for line in self]
+		return selection
+
