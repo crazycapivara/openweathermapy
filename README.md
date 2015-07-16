@@ -47,14 +47,15 @@ in the form of a settings dictionary:
 >>> settings = {"APPID": 1111111111, "units": "metric"}
 ```
 
-## Data objects and views
-The main data object is ``openweathermapy.utils.NestedDict``, which extends Python's builtin ``dict`` 
-by methods giving a more flexible access to the items as shown above. If a list with weather data is returned
-``openweathermapy.utils.NestedDictList`` or ``openweathermapy.core.DataBlock`` is used. The latter one just adds
-an attribute ``meta`` to the ``NestedDictList`` containing the meta data of the responses (see examples below).
+**Data objects and views**
 
-A **view** is just a list of keys to extract data from the responses. So, you can define views like **summary**,
-**minimal** etc. depending on your needs. This keeps everything as flexible as possible:
+The main data object is ``openweathermapy.utils.NestedDict``, which extends Python's builtin ``dict`` 
+by methods giving a more flexible access to the items as shown above. If a list of weather data (objects) is returned
+``openweathermapy.utils.NestedDictList`` or ``openweathermapy.core.DataBlock`` is used. The latter one just adds
+an attribute ``meta`` to the ``NestedDictList`` containing the meta data of the responses.
+
+A **view** is just a list of keys to extract data from the responses. So, you can define views like *summary*,
+*minimal* etc. depending on your needs. This keeps everything as flexible as possible:
 
 ```Python
 >>> views = {
@@ -64,6 +65,14 @@ A **view** is just a list of keys to extract data from the responses. So, you ca
 >>> data = owm.get_current("London,UK", units="metric")
 >>> data(*views["summary"])
 (18.56, 1011, 63)
+
+# return complete keys
+>>> data.get_dict(views["summary"])
+{'main.temp': 18.56, 'main.humidity': 63, 'main.pressure': 1011}
+
+# return only last key
+>>> data.get_dict(views["summary"], split_keys=True)
+{'pressure': 1011, 'temp': 18.56, 'humidity': 63} 
 ```   
 You can also load views from files in *json* format for example by using ``openweathermapy.utils.load_config``.
 
