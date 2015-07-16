@@ -11,7 +11,7 @@ item = data["main"]["temp"]
 item = data("main.temp")
 
 # access multiple items at once
->>> items = data(["main.temp", "wind.speed"])
+>>> items = data("main.temp", "wind.speed")
 ```
 
 # Status
@@ -20,20 +20,52 @@ Development (Alpha)
 # Version
 0.6.0
 
+# Installation
+```bash
+~$ python setup.py install
+```
+
+# Documentation
+Besides the examples in this file, please use Python's builtin help functionality.
+Further documentation based on the docstrings is planned.
+
 # Usage
+```Python
+>>> import openweathermapy.core as owm
+```
+
 All parameters defined in *OpenWeatherMap's* API documentation can be passed to the functions
 in *openweathermapy* as keyword arguments ``**params``.
 The query string always depends on the request (API call), but unsupported parameters will (normally) not raise an error. Most common ones to be used are ``units``, ``lang`` and (if needed) ``APPID``. So, it may be a good idea to pass them
 in the form of a settings dictionary:
 
 ```Python
->>> import openweathermapy.core as owm
 >>> settings = {"units": "metric", "lang": "DE"}
 >>> data = owm.get_current("Kassel,DE", **settings)
 
 # settings containing APIKEY
 >>> settings = {"APPID": 1111111111, "units": "metric"}
 ```
+
+# Data objects and views
+The main data object is ``openweathermapy.utils.NestedDict``, which extends Python's builtin ``dict`` 
+by methods giving a more flexible access to the items as shown above. If a list with weather data is returned
+``openweathermapy.utils.NestedDictList`` or ``openweathermapy.core.DataBlock`` is used. The latter one just adds
+an attribute ``meta`` to the ``NestedDictList`` containing the meta data of the responses (see examples below).
+
+A **view** is just a list of keys to extract data from the responses. So, you can define views like **summary**,
+**minimal** etc. depending on your needs. This keeps everything as flexible as possible:
+
+```Python
+>>> views = {
+...    "summary": ["main.temp", "main.pressure", "main.humidity"]
+... }
+
+>>> data = owm.get_current("London,UK", units="metric")
+>>> data(*views["summary"])
+(18.56, 1011, 63)
+```   
+You can also load views from files in *json* format for example by using ``openweathermapy.utils.load_config``.
 
 **Current weather data**
 
@@ -65,6 +97,10 @@ For details see *OpenWeatherMap's* API documention.
 >>> data.get_many(keys)
 (11.06, 58, 6.2)
 
+# alternative access
+>>> data(*keys)
+(11.06, 58, 6.2)
+
 # get data for 'Malaga,ES', 'Kassel,DE', 'New York,US'
 >>> city_ids = (2892518, 2514256, 5128581)
 >>> data = owm.get_current_for_group(city_ids, units="metric", lang="DE")
@@ -91,7 +127,7 @@ For details see *OpenWeatherMap's* API documention.
 >>> data = owm.get_forecast_hourly("Kassel,DE", lang="DE")
 
 # get daily forecast data for 7 days
->>> data = owm.get_forecast_daily("Kassel,DE", 7)
+>>> data = owm.get_forecast_daily("Kassel,DE", 7, units="metric")
 
 # show meta data
 >>> data.meta
@@ -108,13 +144,29 @@ u'message': 0.0185, u'cod': u'200', u'cnt': 7}
 >>> for line in selection:
 ...    line 
 ...
-(1436871600, 15.58, 20.98)
-(1436958000, 13.18, 22.52)
-(1437044400, 14.83, 25.36)
-(1437130800, 17.18, 28.19)
-(1437217200, 17.49, 26.43)
-(1437303600, 12.79, 20.33)
-(1437390000, 11.69, 19.93)
+(1437044400, 16.63, 24.99)
+(1437130800, 18.21, 30.17)
+(1437217200, 14.96, 26.35)
+(1437303600, 15.82, 23.49)
+(1437390000, 15.52, 23.95)
+(1437476400, 18.77, 29.11)
+(1437562800, 14.67, 27.11)
+
+# convert column "dt" to datetime string
+>>> from datetime import datetime as dt
+>>> conv = {"dt": lambda ts: str(dt.utcfromtimestamp(ts))}
+
+>>> selection = data.select(["dt", "temp.min", "temp.max"], converters=conv)
+>>> for line in selection:
+...    line 
+...
+('2015-07-16 11:00:00', 16.63, 24.99)
+('2015-07-17 11:00:00', 18.21, 30.17)
+('2015-07-18 11:00:00', 14.96, 26.35)
+('2015-07-19 11:00:00', 15.82, 23.49)
+('2015-07-20 11:00:00', 15.52, 23.95)
+('2015-07-21 11:00:00', 18.77, 29.11)
+('2015-07-22 11:00:00', 14.67, 27.11)
 ```
 
 **Historical data**
