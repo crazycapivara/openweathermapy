@@ -115,6 +115,9 @@ For details see *OpenWeatherMap's* API documention.
 >>> data = owm.get_current_for_group(city_ids, units="metric", lang="DE")
 >>> data_malaga = data[0]
 
+# find city by name and return data for match(es)
+>>> data = owm.find_city("Malaga")
+
 # get data for 5 cities around geographic coordinates
 >>> location = (51.32, 9.5)
 >>> data = owm.find_cities_by_geo_coord(location, 5)
@@ -145,7 +148,7 @@ u'coord': {u'lat': 51.316669, u'lon': 9.5}, u'name': u'Kassel'},
 u'message': 0.0185, u'cod': u'200', u'cnt': 7}
 
 # get coordinates and id
->>> data.meta(["city.coord", "city.id"])
+>>> data.meta(*["city.coord", "city.id"])
 ({u'lat': 51.316669, u'lon': 9.5}, 2892518)
 
 # select columns
