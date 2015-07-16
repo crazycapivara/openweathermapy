@@ -47,7 +47,7 @@ in the form of a settings dictionary:
 >>> settings = {"APPID": 1111111111, "units": "metric"}
 ```
 
-# Data objects and views
+## Data objects and views
 The main data object is ``openweathermapy.utils.NestedDict``, which extends Python's builtin ``dict`` 
 by methods giving a more flexible access to the items as shown above. If a list with weather data is returned
 ``openweathermapy.utils.NestedDictList`` or ``openweathermapy.core.DataBlock`` is used. The latter one just adds
