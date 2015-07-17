@@ -18,10 +18,13 @@ item = data("main.temp")
 Development (Alpha)
 
 # Version
-0.6.0
+0.6.5
 
 # Installation
 ```bash
+~$ pip install openweathermapy
+
+# or download package and run ...
 ~$ python setup.py install
 ```
 
@@ -81,7 +84,7 @@ You can also load views from files in *json* format for example by using ``openw
 **City** can be given as *name*, *id*, or *geographic coordinates*.
 If you want to stay as close as possible to the original API, you can also skip the
 first argument and use the parameters ``q``, ``id``, ``lat`` and ``lon`` or ``zip`` instead.
-For details see *OpenWeatherMap's* API documention.
+For details see *OpenWeatherMap's* API documentation.
 
 ```Python
 # get data by city name and country code
