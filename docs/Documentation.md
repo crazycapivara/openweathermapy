@@ -7,19 +7,13 @@
 * Examples
 
 ## get_current
-### Description
 ~~~Python
 def get_current(city=None, **params)
 ~~~
-Get current weather data for given **city**.
-### Parameters
-``city`` (str, int or tuple)
-
-	name, id or geographic coordinates (latitude, longitude)
-
-``**params``
-
-	units, lang[, zip, q, ...]
+Get current weather data for given ``city``.
+### Args:
+``city`` (str, int or tuple): name, id or geographic coordinates (latitude, longitude)
+``**params``: units, lang[, zip, q, ...], see OWM API
 
 ### Examples
 ~~~Python
