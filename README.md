@@ -18,10 +18,11 @@ item = data("main.temp")
 Development (Alpha)
 
 # Version
-0.6.5
+0.6.7
 
 # Installation
 ```bash
+# via pip
 ~$ pip install openweathermapy
 
 # or download package and run ...
