@@ -13,7 +13,7 @@
 	   >>> item = data("main.temp")
 		
 	   # access multiple items at once
-	   >>> items = data(["main.temp", "wind.speed"])
+	   >>> items = data("main.temp", "wind.speed")
 	
 	Base functions and classes to handle nested dictionaries are located
 	in the module ``openweathermapy.utils``.
@@ -26,7 +26,7 @@
 	``lang`` and (if needed) ``APPID``. So, it may be a good idea to pass them
 	as a settings dictionary:
 	
-	   >>> settings = {"units": "metric", "lang": "de"}
+	   >>> settings = {"units": "metric", "lang": "DE"}
 	   >>> data = get_current("Kassel,DE", **settings)
 	   >>> data_in_the_future = get_forecast_daily("Kassel,DE", **settings)
 	
@@ -143,7 +143,7 @@ def get_current(city=None, **params):
 	   >>> data = get_current("Kassel,DE")
 	
 	   # get data by city id and set language to german (de)
-	   >>> data = get_current(2892518, lang="de")
+	   >>> data = get_current(2892518, lang="DE")
 	
 	   # get data by latitude and longitude and return temperatures in Celcius
 	   >>> location = (51.32, 9.5)
@@ -203,7 +203,6 @@ def get_current_from_station(station_id=None, **params):
 	data = wrap_get("station")(station_id, **params)
 	return DataPoint(data)
 
-# should get a ``count`` argument as well!
 def find_stations_by_geo_coord(geo_coord=None, count=10, **params):
 	"""Same as ``find cities_by_geo_coord`` but for stations instead of cities."""
 	params["cnt"] = count
@@ -266,4 +265,3 @@ def _get_forecast_hourly(city, **params):
 	"""This docstring should be wrapped by functools!"""
 	params["loc"] = city
 	return params
-

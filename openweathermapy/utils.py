@@ -6,13 +6,13 @@
 	(as returned by *OpenWeatherMap.org*) in a simplified and flexible way.
 	
 	Furthermore, it includes functions to load settings from config files in
-	 `json` format and to retrieve data for given url requests.
+	 *json* format and to retrieve data for given url requests.
 	
 	:copyright: (c) 2015 by Stefan Kuethe.
 	:license: GPLv3, see <http://www.gnu.org/licenses/gpl.txt> for more details.
 """
 import json
-# Python3 compatibility (maybe `six` package should be used!?)
+# Python3 compatibility (maybe package ``six`` should be used!?)
 try:
 	from urllib import urlopen, urlencode
 except ImportError:
@@ -34,11 +34,12 @@ def get_url_response(url, **params):
 	return data
 
 def load_config(filename):
-	"""Fetch settings from `json` file and return dictionary."""
-	with file(filename) as f:
+	"""Read settings from *json* file and return dictionary."""
+	with open(filename) as f:
 		data = f.read()
-	# Decoding: Python3 compatibility
-	return json.loads(data.decode("utf-8"))
+	# Decoding: Python3 compatibility - NOT NEEDED, raised error!
+	#return json.loads(data.decode("utf-8"))
+	return json.loads(data)
 
 def get_item(data, key):
 	"""Get item from nested dictionary in a simplified way.
@@ -50,11 +51,13 @@ def get_item(data, key):
 	Examples:
 	   # KEY_SEPARATOR = "."
 	   >>> data = {"a": 2, "b": {"c": 6, "d": 8}}
+
 	   # get data["c"]["d"]
 	   >>> get_item(data, "b.c")
 	   6
 
 	   >>> data = {"a": 2, "b": [4, 6]}
+
 	   # get data["b"][0]
 	   >>> get_item(data, "b.[0]")
 	   4
@@ -92,7 +95,7 @@ class NestedDict(dict):
 	For details see function ``get_item``.
 	"""
 	def __call__(self, *keys):
-		"""Call method ``get`` or ``get_many`` depending on type of ``key``."""
+		"""Call method ``get`` or ``get_many`` depending on number of ``keys``."""
 		if len(keys) == 1:
 			return self.get_item(keys[0])
 		return self.get_many(keys)
@@ -141,6 +144,7 @@ class NestedDictList(list):
 		return self.select(keys)
 
 	def select(self, keys, converters=None):
+		"""Return data (table) for selected columns (``keys``)."""
 		selection = [line.get_many(keys, converters) for line in self]
 		return selection
 
@@ -148,4 +152,3 @@ class NestedDictList(list):
 		"""*args and **kwargs: see ``NestedDict.get_item``."""
 		selection = [line.get_dict(keys, *args, **kwargs) for line in self]
 		return selection
-
