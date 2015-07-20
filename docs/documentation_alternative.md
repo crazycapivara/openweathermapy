@@ -5,16 +5,17 @@
 ```Python
 def get_current(city=None, **params)
 ```
-#### Description (docstring)
+**Description (docstring)**
 ```
-Get current weather data for ``city``.
+Get current weather data for city.
 	
 Args:
    city (str, int or tuple): name, id
       or geographic coordinates (latidude, longitude)
   **params: units, lang[, zip, ...]
 ```
-#### Examples
+
+**Examples**
 ```Python
 # get data by city name and country code
 >>> data = get_current("Kassel,DE")
