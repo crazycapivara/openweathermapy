@@ -1,8 +1,8 @@
 # openweathermapy
 Python package wrapping **OpenWeatherMap.org's** API 2.5.
 
-As **OpenWeatherMap** returns data (mostly) in the form of nested dictionaries,
-**openweathermapy** gives a simple API to access items in a comfortable way:
+As **OpenWeatherMap.org** returns data (mostly) in the form of nested dictionaries,
+**Openweathermapy** gives a simple API to access items in a comfortable way:
 ```Python
 # classic access
 item = data["main"]["temp"]
@@ -21,11 +21,11 @@ Development Beta
 0.7.0
 
 #Changelog
-* **2015-08-09** optinal **pandas.DataFrame** support added for forecast and historical data
+* **2015-08-09** optional **pandas.DataFrame** support added for forecast and historical data
 
 # Requirements
-**Openweathermapy supports Python 2.7, 3.2, 3.3 and 3.4. There are no requirements,
-but for forecast and historical data **pandas.DataFrame** objects can be returned. So it may be a good idea to install **pandas**. But it will also work without. 
+**Openweathermapy** supports Python 2.7, 3.2, 3.3 and 3.4. There are no requirements,
+but for forecast and historical data **pandas.DataFrame** objects can be returned. So it may be a good idea to install **pandas**, but it will also work without. 
 
 # Installation
 ```bash
@@ -46,7 +46,7 @@ Further documentation based on the docstrings is planned and will be published o
 ```
 
 All parameters defined in **OpenWeatherMap.org's** API documentation can be passed to the functions
-in **openweathermapy** as keyword arguments ``**params``.
+in **Openweathermapy** as keyword arguments ``**params``.
 The query string always depends on the request (API call), but unsupported parameters will (normally) not raise an error. Most common ones to be used are ``units``, ``lang`` and (if needed) ``APPID``. So, it may be a good idea to pass them
 in the form of a settings dictionary:
 
