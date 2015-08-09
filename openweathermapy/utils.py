@@ -18,6 +18,12 @@ try:
 except ImportError:
 	from urllib.request import urlopen
 	from urllib.parse import urlencode
+# Check whether pandas is installed
+try:
+	import pandas as pd
+	PANDAS = True
+except:
+	PANDAS = False
 
 __author__ = "Stefan Kuethe"
 __license__ = "GPLv3"
@@ -143,6 +149,16 @@ class NestedDictList(list):
 		"""Alias for method ``select``."""
 		return self.select(keys)
 
+	def get(self, key, converters=None):
+		"""Get single column.
+
+		Useful if needed as index for pandas DataFrame object.
+		"""
+		#column = [line(key) for line in self]
+		column = [line[0] for line in self.select([key], converters)]
+		return column
+
+
 	def select(self, keys, converters=None):
 		"""Return data (table) for selected columns (``keys``)."""
 		selection = [line.get_many(keys, converters) for line in self]
@@ -152,3 +168,25 @@ class NestedDictList(list):
 		"""*args and **kwargs: see ``NestedDict.get_item``."""
 		selection = [line.get_dict(keys, *args, **kwargs) for line in self]
 		return selection
+
+	def select_pandas(self, keys, index=None, *args, **kwargs):
+		"""Return ``pandas DataFrame`` object for selected ``keys`` (columns)."""
+		if not PANDAS:
+			return "You need to install pandas to use this great feature."
+		selection = self.select(keys, *args, **kwargs)
+		data_frame = pd.DataFrame(selection, columns=keys, index=index)
+		return data_frame
+
+	def _select_pandas(self, keys, index_key=None, *args, **kwargs):
+		"""Return pandas object with index if given. OBSOLETE!"""
+		selection = self.select(keys, *args, **kwargs)
+		if index_key:
+			index = keys.index(index_key)
+			# use numpy instead!?
+			index_values = [line[index] for line in selection]
+		data_frame = pd.DataFrame(selection, columns=keys, index=index_values)
+		# remove index column from table
+		del data_frame[index_key]
+		return data_frame
+
+	
