@@ -1,8 +1,8 @@
 # openweathermapy
-Python package wrapping *OpenWeatherMap.org's* API 2.5.
+Python package wrapping **OpenWeatherMap.org's** API 2.5.
 
-As *OpenWeatherMap* returns data mostly in the form of nested dictionaries,
-*openweathermapy* gives a simple API to access items in a comfortable way:
+As **OpenWeatherMap** returns data (mostly) in the form of nested dictionaries,
+**openweathermapy** gives a simple API to access items in a comfortable way:
 ```Python
 # classic access
 item = data["main"]["temp"]
@@ -15,10 +15,17 @@ item = data("main.temp")
 ```
 
 # Status
-Development (Alpha)
+Development Beta
 
 # Version
-0.6.7
+0.7.0
+
+#Changelog
+* **2015-08-09** optinal **pandas.DataFrame** support added for forecast and historical data
+
+# Requirements
+**Openweathermapy supports Python 2.7, 3.2, 3.3 and 3.4. There are no requirements,
+but for forecast and historical data **pandas.DataFrame** objects can be returned. So it may be a good idea to install **pandas**. But it will also work without. 
 
 # Installation
 ```bash
@@ -31,15 +38,15 @@ Development (Alpha)
 
 # Documentation
 Besides the examples in this file, please use Python's builtin help functionality.
-Further documentation based on the docstrings is planned.
+Further documentation based on the docstrings is planned and will be published on **ReadTheDocs** (soon!?).
 
 # Usage
 ```Python
 >>> import openweathermapy.core as owm
 ```
 
-All parameters defined in *OpenWeatherMap's* API documentation can be passed to the functions
-in *openweathermapy* as keyword arguments ``**params``.
+All parameters defined in **OpenWeatherMap.org's** API documentation can be passed to the functions
+in **openweathermapy** as keyword arguments ``**params``.
 The query string always depends on the request (API call), but unsupported parameters will (normally) not raise an error. Most common ones to be used are ``units``, ``lang`` and (if needed) ``APPID``. So, it may be a good idea to pass them
 in the form of a settings dictionary:
 
@@ -152,7 +159,7 @@ u'coord': {u'lat': 51.316669, u'lon': 9.5}, u'name': u'Kassel'},
 u'message': 0.0185, u'cod': u'200', u'cnt': 7}
 
 # get coordinates and id
->>> data.meta(*["city.coord", "city.id"])
+>>> data.meta("city.coord", "city.id")
 ({u'lat': 51.316669, u'lon': 9.5}, 2892518)
 
 # select columns
@@ -214,8 +221,21 @@ to be given. Optionally a *dictionary with parameters* and a *data converter* ca
 >>> owm.BASE_URL+appendix
 'http://api.openweathermap.org/data/2.5/weather'
 
-# create a function to get current weather data and return temperatures in Celsius (units="metric") 
+# create a function to get current weather data 
+# and return temperatures in Celsius (units="metric") 
 >>> f = wrap_get("weather", dict(units="metric"))
 >>> data = f("London,UK")
 >>> data_de = f(zip="34128,DE", lang="DE")
 ```
+
+# Pandas support
+**New in version 0.7.0**
+
+For forecast and historical data it is now possible to get **pandas.DataFrame** objects from the responses:
+```python
+>>> data = owm.get_forecast_daily("London,UK")
+>>> dates = data.get("dt")
+>>> keys = ["main.temp", "wind.speed"]
+>>> selection = data.select_pandas(keys, index=dates)
+```
+
