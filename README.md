@@ -24,8 +24,9 @@ Development Beta
 * **2015-08-09** optional **pandas.DataFrame** support added for forecast and historical data
 
 # Requirements
-**Openweathermapy** supports Python 2.7, 3.2, 3.3 and 3.4. There are no requirements,
-but for forecast and historical data **pandas.DataFrame** objects can be returned. So it may be a good idea to install **pandas**, but it will also work without. 
+**Openweathermapy** supports Python 2.7, 3.2, 3.3 and 3.4. There are no more requirements,
+but for forecast and historical data **pandas.DataFrame** objects can be returned.
+So it may be a good idea to install **pandas**, but it is not mandatory. 
 
 # Installation
 ```bash
@@ -58,13 +59,13 @@ in the form of a settings dictionary:
 >>> settings = {"APPID": 1111111111, "units": "metric"}
 ```
 
-**Data objects and views**
-
+## Data objects
 The main data object is ``openweathermapy.utils.NestedDict``, which extends Python's builtin ``dict`` 
 by methods giving a more flexible access to the items as shown above. If a list of weather data (objects) is returned
 ``openweathermapy.utils.NestedDictList`` or ``openweathermapy.core.DataBlock`` is used. The latter one just adds
 an attribute ``meta`` to the ``NestedDictList`` containing the meta data of the responses.
 
+## Views
 A **view** is just a list of keys to extract data from the responses. So, you can define views like *summary*,
 *minimal* etc. depending on your needs. This keeps everything as flexible as possible:
 
@@ -87,12 +88,12 @@ A **view** is just a list of keys to extract data from the responses. So, you ca
 ```   
 You can also load views from files in *json* format for example by using ``openweathermapy.utils.load_config``.
 
-**Current weather data**
+## Fetch current weather data
 
-**City** can be given as *name*, *id*, or *geographic coordinates*.
+**City** can be given as **name**, **id**, or **geographic coordinates**.
 If you want to stay as close as possible to the original API, you can also skip the
 first argument and use the parameters ``q``, ``id``, ``lat`` and ``lon`` or ``zip`` instead.
-For details see *OpenWeatherMap's* API documentation.
+For details see **OpenWeatherMap.org's** API documentation.
 
 ```Python
 # get data by city name and country code
@@ -121,7 +122,7 @@ For details see *OpenWeatherMap's* API documentation.
 >>> data(*keys)
 (11.06, 58, 6.2)
 
-# get data for 'Malaga,ES', 'Kassel,DE', 'New York,US'
+# get data for 'Kassel,DE', 'Malaga,ES', 'New York,US'
 >>> city_ids = (2892518, 2514256, 5128581)
 >>> data = owm.get_current_for_group(city_ids, units="metric", lang="DE")
 >>> data_malaga = data[0]
@@ -141,8 +142,7 @@ For details see *OpenWeatherMap's* API documentation.
 >>> data = owm.find_stations_by_geo_coord(location)
 ```
 
-**Forecast data**
-
+## Fetch forecast data
 **City** can be given as shown in the examples above.  
 
 ```Python
@@ -192,24 +192,33 @@ u'message': 0.0185, u'cod': u'200', u'cnt': 7}
 ('2015-07-22 11:00:00', 14.67, 27.11)
 ```
 
-**Historical data**
+## Fetch historical data
 
-For a complete list of parameters as ``start``, ``end`` etc., which can be passed, please refer
-to *OpenWeatherMap's* API documention. 
+For a complete list of parameters, which can be passed,
+please refer to **OpenWeatherMap.org's** API documention. 
 
 ```Python
-# get historical data for city
+# get historical data by city name
 >>> data = owm.get_history("Kassel,DE")
+
+# define time period
+>>> from datetime import datetime as dt
+>>> date_s = dt(2015, 4, 1).timestamp()
+>>> date_e = dt(2015, 4, 6).timestamp()
+
+# get historical data for given time period by city id
+>>> data = owm.get_history(2892518, start=date_s, end=date_e)
+>>> data = owm.get_history("London,UK", start=date_s, cnt=48)
 
 # get historical data from station
 >>> data = owm.get_history_from_station(4926)
 ```
 
-**Customization**
+## Customization
 
 You can customize or extend the lib to your needs by using the wrapper function ``wrap_get`` or the decorator
-class ``GetDecorator``. Both are more or less the same. As first argument the *appendix* to the *base url* needs
-to be given. Optionally a *dictionary with parameters* and a *data converter* can be passed. 
+class ``GetDecorator``. Both are more or less the same. As first argument the **appendix** to the **base url** needs
+to be given. Optionally a **dictionary with parameters** and a **data converter** can be passed. 
 
 ```Python
 # show base url
@@ -223,7 +232,7 @@ to be given. Optionally a *dictionary with parameters* and a *data converter* ca
 
 # create a function to get current weather data 
 # and return temperatures in Celsius (units="metric") 
->>> f = wrap_get("weather", dict(units="metric"))
+>>> f = owm.wrap_get("weather", dict(units="metric"))
 >>> data = f("London,UK")
 >>> data_de = f(zip="34128,DE", lang="DE")
 ```
@@ -234,8 +243,14 @@ to be given. Optionally a *dictionary with parameters* and a *data converter* ca
 For forecast and historical data it is now possible to get **pandas.DataFrame** objects from the responses:
 ```python
 >>> data = owm.get_forecast_daily("London,UK")
+
 >>> dates = data.get("dt")
 >>> keys = ["main.temp", "wind.speed"]
 >>> selection = data.select_pandas(keys, index=dates)
+
+>>> selection = data.select_pandas(keys)
+>>> selection.set_index("dt")
+
+>>> selection.to_csv()
 ```
 
