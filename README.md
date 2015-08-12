@@ -1,7 +1,7 @@
 # openweathermapy
-Python package wrapping *OpenWeatherMap.org's* API 2.5.
+Python package wrapping **OpenWeatherMap.org's** API 2.5.
 
-As *OpenWeatherMap* returns data mostly in the form of nested dictionaries,
+As **OpenWeatherMap.org** returns data mostly in the form of nested dictionaries,
 *openweathermapy* gives a simple API to access items in a comfortable way:
 ```Python
 # classic access
@@ -15,10 +15,14 @@ item = data("main.temp")
 ```
 
 # Status
-Development (Alpha)
+Development (Beta)
 
 # Version
 0.6.7
+
+### Pandas support added in latest version
+Download latest version from branch ``pandas_support`` giving you the possibility
+to return forecast and historical data as ``pandas.DataFrame`` objects.
 
 # Installation
 ```bash
