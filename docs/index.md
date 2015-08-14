@@ -241,7 +241,7 @@ please refer to **OpenWeatherMap.org's** API documention.
 ```
 
 # Pandas support
-**Since **Openweathermapy** version 0.7.0**
+**Since Openweathermapy version 0.7.0**
 
 For forecast and historical data it is possible to get ``pandas.DataFrame`` objects from the responses:
 ```python
