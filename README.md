@@ -21,7 +21,7 @@ Development (Beta)
 0.6.7
 
 ### Pandas support added in latest version
-Download latest version from branch ``pandas_support`` giving you the possibility
+You can download the latest version from branch ``pandas_support`` giving you the possibility
 to return forecast and historical data as ``pandas.DataFrame`` objects.
 
 # Installation
@@ -29,13 +29,15 @@ to return forecast and historical data as ``pandas.DataFrame`` objects.
 # via pip
 ~$ pip install openweathermapy
 
-# or download package and run ...
+# or fetch latest version from git ...
+~$ git clone https://github.com/crazycapivara/openweathermapy/
+~$ cd openweathermapy
 ~$ python setup.py install
 ```
 
 # Documentation
-Besides the examples in this file, please use Python's builtin help functionality.
-Further documentation based on the docstrings is planned.
+The latest Documentation can always be found at [Read The Docs](http://openweathermapy.readthedocs.org).
+Furthermore you can use Python's builtin help functionality and take a look at the examples in this file.
 
 # Usage
 ```Python
