@@ -1,0 +1,7 @@
+site_name: Openweathermapy
+#theme: readthedocs 
+theme: united
+repo_url: https://github.com/crazycapivara/openweathermapy
+site_description: Openweathermapy - Python OpenWeatherMap.org API 2.5 Wrapper 
+site_author: Stefan Kuethe
+copyright: Copyright 2015 Stefan Kuethe
