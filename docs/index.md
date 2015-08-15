@@ -168,7 +168,7 @@ for details see **OpenWeatherMap.org's** API documentation:
 ```
 
 ## Fetch forecast data
-The ``city`` can be given in the same way as shown in the examples above.  
+The ``city`` argument can be given in the same way as shown in the examples above.  
 
 ```Python
 # get 3h forecast data
